@@ -1,8 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define G 10
-#define epsilon 0.3
+#define G 6.673e-11
 
 typedef struct bullet *Bullet;
 
@@ -260,6 +259,7 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
 
             Bs[i]->v = Add(Bs[i]->v, Multk(Bs[i]->a,dt));
             Bs[i]->c = Add(Bs[i]->c, Multk(Bs[i]->v,dt));
+            Bs[i]->v = Multk(Bs[i]->v,(double)(1/dt));
             
             free(gbn1);
             free(gbn2);
@@ -281,37 +281,103 @@ double AbsVal(double x){
     return -x;
 }
 
-void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb){
-    /*simulação em t no intervalo [0,tf] em stepsizes dt */
-    double t = 0;
-    printf("# x \t y \n");
-    for(t = 0; t < tf; t += dt){
-        /* resultados jogados na saída padrão */
-        printf(" %.3lf \t %.3lf \n",Ns[0]->c[0],Ns[0]->c[1]);
-        printf(" %.3lf \t %.3lf \n",Ns[1]->c[0],Ns[1]->c[1]);
-        Update(Bs, Ns, P, nb, dt, t, tb);
-        if(AbsSqrd(Ns[0]->c)<P->r*P->r || AbsSqrd(Ns[1]->c)< P->r*P->r ||
-         (AbsVal(Ns[0]->c[0]-Ns[1]->c[0])<epsilon && AbsVal(Ns[0]->c[1]-Ns[1]->c[1])<epsilon) )break;
-    }
+/*Se a coordenada estiver fora dos limites do mapa, colocar o objeto dentor dos limites*/
+double* CheckLimits(double*c,double bounds[]){
+    while(c[1]>bounds[0])
+        (c[1])-=(bounds[0]-bounds[1]);
+    while(c[1]<bounds[1])
+        (c[1])+=(bounds[0]-bounds[1]);
+    while(c[0]>bounds[2])
+        (c[0])-=(bounds[2]-bounds[3]);
+    while(c[0]<bounds[3])
+        (c[0])+=(bounds[2]-bounds[3]);
+    return c;
+}
+
+double max(double x, double y){
+    if(x>y)return x;
+    return y;
+}
+
+double min(double x, double y){
+    if(x<y)return x;
+    return y;
 }
 
 
-int main(){
+/*Os limites são definidos de acordo com as posições das naves*/
+/*O limite superior, por exemplo, é definido como o máximo entre 0 e o dobro da maior das coordenadas y das naves */
+/*Analogamente, o mínimo é definido o mínimo entre 0 e o dobro da menor das coordenadas y das naves  */
+/*O mesmo é feito para os limites direito e esquerdo*/
+void DefineBoundaries(Nave* Ns,double bounds[]){
+    bounds[0]= max(0,2*max(Ns[0]->c[1],Ns[1]->c[1])); /*UpperBound*/
+    bounds[1]= min(0,2*min(Ns[0]->c[1],Ns[1]->c[1])); /*LowerBound*/
+    bounds[2]= max(0,2*max(Ns[0]->c[0],Ns[1]->c[0])); /*RightBound*/
+    bounds[3]= min(0,2*min(Ns[0]->c[0],Ns[1]->c[0])); /*LeftBound */
+}
+
+int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
+    int i;
+    if(bo && t>tb){
+            bo=0;
+            printf("Tempo Limite de simulação dos projéteis alcançado!\n\n");
+        }
+        /* resultados impressos na saída padrão */
+        printf("Tempo %.3lf:\n",t);
+        for(i=0;i<2;i++){
+            printf("%5s:      x: %12.4e | y: %12.4e |",Ns[i]->nome,Ns[i]->c[0],Ns[i]->c[1]);
+            printf(" vx: %12.4e | vy: %12.4e\n",Ns[i]->v[0],Ns[i]->v[1]);
+        }
+        if(bo)
+            for(i=0;i<nb;i++){
+                printf("projétil%d:  x: %12.4e | y: %12.4e |",i+1,Bs[i]->c[0],Bs[i]->c[1]);
+                printf(" vx: %12.4e | vy: %12.4e \n",Bs[i]->v[0],Bs[i]->v[1]);
+            }
+        printf("\n");
+    return bo;
+}
+
+void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[]){
+    /*simulação em t no intervalo [0,tf] em stepsizes dt */
+    double t = 0;
+    int i,bo=1;
+
+    printf("\nSimulação Iniciada!\n");
+
+    for(t = 0; t < tf; t += dt){
+        
+        bo=ImprimeDados(bo,t,tb,nb,Ns,Bs); 
+
+        Update(Bs, Ns, P, nb, dt, t, tb);
+
+        for(i=0;i<nb;i++){
+            Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+        }
+        for(i=0;i<2;i++){
+            Ns[i]->c=CheckLimits(Ns[i]->c,bounds);
+        }
+
+    }
+    printf("Simulação Finalizada!\n");
+}
+int main(int argc, char*argv[]){
     int i,j,nb;
-    double dt = .01  /*stepsize pré-definido */, tb;
+    double dt = atof(argv[1]) /*timestep dado por linha de comando*/, tb, bounds[4]/*limites do mapa a serem definidos*/;
     double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
     char** Nomes = malloc(sizeof(char*)*2);
     Nave* Ns;
     Planet P;
     Bullet* Bs;
     
-    /*input para criação dos objetos: massa, tempo total e raio*/
+    /*input para criação do Planeta: massa, tempo total e raio*/
     for(i = 0; i < 3; i++) {
         scanf("%lf", &DadosP[i]);
     }
 
     P = CriaPlaneta(DadosP[0], DadosP[1], DadosP[2]);
     
+
+    /*input para criação das Naves*/
     for(i = 0; i < 2; i++) {
         DadosN[i] = malloc(sizeof(double)*5); /* Massa, pos_x, pos_y, vel_x, vel_y */
         Nomes[i]  = malloc(sizeof(char)*20);  /* Nome das naves */
@@ -324,10 +390,12 @@ int main(){
 
     Ns = CriaNaves(DadosN, Nomes);
 
+    DefineBoundaries(Ns,bounds);
+
+    /*input para criação dos Projéteis*/
     scanf("%d", &nb);  /* número de projéteis */
     scanf("%lf", &tb); /* tempo de simulação dos projéteis */
 
-    /* Dados dos projéteis {massa, pos_x, etc} */
     DadosB = malloc(sizeof(double*)*nb); 
     for(i = 0; i < nb ; i++){
         DadosB[i] = malloc(sizeof(double)*5);
@@ -338,8 +406,21 @@ int main(){
 
     Bs = CriaBullets(DadosB, nb);
 
+    for(i=0;i<nb;i++){
+        Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+    }
+
+    printf("Simulação prestes a ser iniciada...\n");
+    printf("TimeStep: %.4lf\n",dt);
+    printf("Número de projéteis: %d\n",nb);
+    printf("Tempo de simulação: %.3lf\n",P->t);
+    printf("Limite Superior do Mapa: %.3e\n",bounds[0]);
+    printf("Limite Inferior do Mapa: %.3e\n",bounds[1]);
+    printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
+    printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
+
     /*simulação do movimento*/
-    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb);  
+    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds);  
 
     /*desalocando os vetores*/
     for(i = 0; i < 2; i++){
@@ -362,3 +443,4 @@ int main(){
     
     return 0;
 }
+
