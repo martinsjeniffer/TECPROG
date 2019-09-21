@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define G 1
+#define G 10
+#define epsilon 0.3
 
 typedef struct bullet *Bullet;
 
@@ -132,8 +133,8 @@ double* Multk(double* c, double k){
 
 /* Adiciona o conteúdo de c2 em c */
 double* Add(double* c,double* c2){
-    (c[0])+=(c2[0]);
-    (c[1])+=(c2[1]);
+    c[0]=c[0]+c2[0];
+    c[1]=c[1]+c2[1];
     return c;
 }
 
@@ -271,23 +272,33 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
     Ns[1]->v = Add(Ns[1]->v,Multk(Ns[1]->a,dt));
     Ns[0]->c = Add(Ns[0]->c,Multk(Ns[0]->v,dt));
     Ns[1]->c = Add(Ns[1]->c,Multk(Ns[1]->v,dt));
+    Ns[0]->v=Multk(Ns[0]->v,(double)1/dt);
+    Ns[1]->v=Multk(Ns[1]->v,(double)1/dt);
+}
+
+double AbsVal(double x){
+    if(x>=0)return x;
+    return -x;
 }
 
 void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb){
     /*simulação em t no intervalo [0,tf] em stepsizes dt */
     double t = 0;
+    printf("# x \t y \n");
     for(t = 0; t < tf; t += dt){
-        Update(Bs, Ns, P, nb, dt, t, tb);
         /* resultados jogados na saída padrão */
-        printf("%s: %lf %lf / ", Ns[0]->nome, Ns[0]->c[0], Ns[0]->c[1]);
-        printf("%s: %lf %lf / t=%lf\n", Ns[1]->nome, Ns[1]->c[0], Ns[1]->c[1], t);
+        printf(" %.3lf \t %.3lf \n",Ns[0]->c[0],Ns[0]->c[1]);
+        printf(" %.3lf \t %.3lf \n",Ns[1]->c[0],Ns[1]->c[1]);
+        Update(Bs, Ns, P, nb, dt, t, tb);
+        if(AbsSqrd(Ns[0]->c)<P->r*P->r || AbsSqrd(Ns[1]->c)< P->r*P->r ||
+         (AbsVal(Ns[0]->c[0]-Ns[1]->c[0])<epsilon && AbsVal(Ns[0]->c[1]-Ns[1]->c[1])<epsilon) )break;
     }
 }
 
 
 int main(){
     int i,j,nb;
-    double dt = 1  /*stepsize pré-definido */, tb;
+    double dt = .01  /*stepsize pré-definido */, tb;
     double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
     char** Nomes = malloc(sizeof(char*)*2);
     Nave* Ns;
