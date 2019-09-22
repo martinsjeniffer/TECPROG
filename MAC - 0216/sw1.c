@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#define G 1
+#define G 6.673e-11
 
 typedef struct bullet *Bullet;
 
@@ -9,12 +9,12 @@ typedef struct nave *Nave;
 
 typedef struct planet *Planet;
 
-struct bullet{
+struct bullet{ /* Projéteis */
     double m;
     double *c,*v,*a;
 };
 
-struct nave{
+struct nave{  
     char* nome;
     double m;
     double *c,*v,*a;
@@ -24,6 +24,7 @@ struct planet{
     double r,m,t;
 };
 
+/*funções para desalocar a memória no final do programa*/
 void freeNave(Nave N){
     free(N->c);
     free(N->v);
@@ -43,9 +44,9 @@ void FreeBullet(Bullet B){
 Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome){
     Nave N = malloc(sizeof(struct nave));
     double *c,*v,*a;
-    c = malloc(sizeof(double)*2); /* posições?   */
-    v = malloc(sizeof(double)*2); /* velocidade? */
-    a = malloc(sizeof(double)*2); /* aceleração? */
+    c = malloc(sizeof(double)*2); /* vetor posição    */
+    v = malloc(sizeof(double)*2); /* vetor velocidade */
+    a = malloc(sizeof(double)*2); /* vetor aceleração */
     N->nome=nome;
     N->m=m;
     N->c=c;
@@ -63,7 +64,7 @@ Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome){
     return N;
 }
 
-/* Cria várias naves usando a estrutura da função CriaNave() */
+/*Criação de apenas 2 naves porém pode ser facilmente generalizada para n naves*/
 Nave* CriaNaves(double**naves, char**nomes){
     int i = 0;
     Nave* NaveList = malloc(2*sizeof(Nave)); 
@@ -77,7 +78,7 @@ Nave* CriaNaves(double**naves, char**nomes){
 Planet CriaPlaneta(double r,double m,double t){
     Planet P = malloc(sizeof(struct planet));
     P->m=m; /* massa */
-    P->t=t; /* tempo */
+    P->t=t; /* tempo  de simulação*/
     P->r=r; /* raio  */
     return P;
 }
@@ -85,9 +86,9 @@ Planet CriaPlaneta(double r,double m,double t){
 Bullet CriaBullet(double m,double x, double y,double vx,double vy){
     Bullet B = malloc(sizeof(struct nave));
     double *c,*v,*a;
-    c = malloc(sizeof(double)*2); /* posições?   */
-    v = malloc(sizeof(double)*2); /* velocidade? */
-    a = malloc(sizeof(double)*2); /* aceleração? */
+    c = malloc(sizeof(double)*2); /* posições    */
+    v = malloc(sizeof(double)*2); /* velocidade  */
+    a = malloc(sizeof(double)*2); /* aceleração  */
     B->m=m;
     B->c=c;
     B->v=v;
@@ -105,7 +106,7 @@ Bullet CriaBullet(double m,double x, double y,double vx,double vy){
     return B;
 }
 
-/* Cria vários projéteis usando a estrutura da função CriaBullet() */
+/* Criação dos projéteis fornecidos na entrada padrão */
 Bullet* CriaBullets(double**bullets, int nb){
     int i = 0;
     Bullet* BulletList = malloc(nb*sizeof(Bullet));
@@ -116,11 +117,12 @@ Bullet* CriaBullets(double**bullets, int nb){
     return BulletList;
 }
 
-/* SOMA DOS QUADRADOS DAS POSIÇÕES (ñ é melhor usar a lib math e fazer direto??) */
+/* Quadrado do módulo do vetor c */
 double AbsSqrd(double* c){
     return (c[0])*(c[0])+(c[1])*(c[1]);
 }
 
+/* Multiplica o vetor c por uma constante k */
 double* Multk(double* c, double k){
     double newx = c[0]*k, newy=c[1]*k;
     c[0]=newx;
@@ -128,19 +130,21 @@ double* Multk(double* c, double k){
     return c;
 }
 
+/* Adiciona o conteúdo de c2 em c */
 double* Add(double* c,double* c2){
-    (c[0])+=(c2[0]);
-    (c[1])+=(c2[1]);
+    c[0]=c[0]+c2[0];
+    c[1]=c[1]+c2[1];
     return c;
 }
 
+/* Subtrai o conteúdo de c2 em c */
 double* Sub(double* c,double* c2){
     (c[0])-=(c2[0]);
     (c[1])-=(c2[1]);
     return c;
 }
 
-/* ????? */
+/* Retorna um vetor cópia de c */
 double* Copia(double* c){
     double* c2=malloc(sizeof(double)*2);
     c2[0]=c[0];
@@ -148,6 +152,7 @@ double* Copia(double* c){
     return c2;
 }
 
+/* Força gravicional entre Planeta e Projétil */
 double* gravityPB(Planet P, Bullet B){
     double* g=Copia(B->c);
     double dist= (double)(-G*P->m*B->m/(pow(AbsSqrd(B->c),3/2)));
@@ -155,7 +160,7 @@ double* gravityPB(Planet P, Bullet B){
     return g;
 }
 
-/* Interação entre o planeta e a nave */
+/* Interação entre o Planeta e Nave */
 double* gravityPN(Planet P, Nave N){
     double* g = Copia(N->c);
 
@@ -176,7 +181,7 @@ double* gravityNN(Nave N1,Nave N2){
     return g;
 }
 
-/* Interação entre os projéteis e as naves */
+/* Interação entre os Projétil e Nave */
 double* gravityBN(Bullet B, Nave N){
     double* g = Sub(Copia(N->c),B->c), 
             dist = (double)(-G*B->m*N->m/(pow(AbsSqrd(g),3/2)));
@@ -185,7 +190,7 @@ double* gravityBN(Bullet B, Nave N){
     return g;
 }
 
-/* Interação entre os projéteis */
+/* Interação entre Projéteis */
 double* gravityBB(Bullet B1,Bullet B2){
     double* g = Sub(Copia(B2->c),B1->c),
             dist = (double)(-G*B2->m*B1->m/(pow(AbsSqrd(g),3/2)));
@@ -194,7 +199,6 @@ double* gravityBB(Bullet B1,Bullet B2){
     return g;
 }
 
-/* MELHORAR NOME DAS VARIÁVEIS AQUI */
 void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb){
     int i, j;
     double* gpn1 = gravityPN(P, Ns[0]), *gpn2=gravityPN(P, Ns[1]); /* cálculo da gravidade entre o planeta e as naves 1 e 2 */
@@ -224,8 +228,9 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
         Bs[i]->a[1] = 0;
     }
 
-    if(t < tb){
+    if(t < tb){ /* enquanto o tempo de simulação for menor que o tempo limite dos projéteis */
         for(i = 0; i < nb; i++){
+            /* Cálculo da aceleração no i+1-ésimo projétil */
             for(j = i + 1; j < nb; j++){
                 gbn1 = gravityBB(Bs[j], Bs[i]);
                 Bs[i]->a = Add(Bs[i]->a, Multk(gbn1, (double)(1/Bs[i]->m)));
@@ -235,14 +240,12 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
                 free(gbn1);
             }
 
-            Bs[i]->v = Add(Bs[i]->v, Multk(Bs[i]->a,dt));
-            Bs[i]->c = Add(Bs[i]->c, Multk(Bs[i]->v,dt));
-            
+            /* Projétil i+1 com Naves e Planeta */
             gbn1 = gravityBN(Bs[i], Ns[0]);
             gbn2 = gravityBN(Bs[i], Ns[1]);
             gpb = gravityPB(P, Bs[i]);
             
-            /* resultantes?? */
+            /* Atualiza aceleração do projétil e das naves */
             Ns[0]->a = Add(Ns[0]->a, Multk(gbn1,(double)(1/Ns[0]->m)));
             Multk(gbn1,Ns[0]->m);
             Ns[1]->a = Add(Ns[1]->a, Multk(gbn2,(double)(1/Ns[1]->m)));
@@ -252,45 +255,129 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
             Bs[i]->a = Add(Bs[i]->a, Multk(gbn2,(double)(-1/Bs[i]->m)));
             Bs[i]->a = Add(Bs[i]->a, Multk(gpb,(double)(1/Bs[i]->m)));
             
+            /* Atualização da velocidade e posição do i+1-ésimo projétil */
+
+            Bs[i]->v = Add(Bs[i]->v, Multk(Bs[i]->a,dt));
+            Bs[i]->c = Add(Bs[i]->c, Multk(Bs[i]->v,dt));
+            Bs[i]->v = Multk(Bs[i]->v,(double)(1/dt));
+            
             free(gbn1);
             free(gbn2);
             free(gpb);
         }
     }
 
-    /* atualiza velocidade e posição */
+    /* atualiza velocidade e posição das naves */
     Ns[0]->v = Add(Ns[0]->v,Multk(Ns[0]->a,dt));
     Ns[1]->v = Add(Ns[1]->v,Multk(Ns[1]->a,dt));
     Ns[0]->c = Add(Ns[0]->c,Multk(Ns[0]->v,dt));
     Ns[1]->c = Add(Ns[1]->c,Multk(Ns[1]->v,dt));
+    Ns[0]->v=Multk(Ns[0]->v,(double)1/dt);
+    Ns[1]->v=Multk(Ns[1]->v,(double)1/dt);
 }
 
-void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb){
+double AbsVal(double x){
+    if(x>=0)return x;
+    return -x;
+}
+
+/*Se a coordenada estiver fora dos limites do mapa, colocar o objeto dentor dos limites*/
+double* CheckLimits(double*c,double bounds[]){
+    while(c[1]>bounds[0])
+        (c[1])-=(bounds[0]-bounds[1]);
+    while(c[1]<bounds[1])
+        (c[1])+=(bounds[0]-bounds[1]);
+    while(c[0]>bounds[2])
+        (c[0])-=(bounds[2]-bounds[3]);
+    while(c[0]<bounds[3])
+        (c[0])+=(bounds[2]-bounds[3]);
+    return c;
+}
+
+double max(double x, double y){
+    if(x>y)return x;
+    return y;
+}
+
+double min(double x, double y){
+    if(x<y)return x;
+    return y;
+}
+
+
+/*Os limites são definidos de acordo com as posições das naves*/
+/*O limite superior, por exemplo, é definido como o máximo entre 0 e o dobro da maior das coordenadas y das naves */
+/*Analogamente, o mínimo é definido o mínimo entre 0 e o dobro da menor das coordenadas y das naves  */
+/*O mesmo é feito para os limites direito e esquerdo*/
+void DefineBoundaries(Nave* Ns,double bounds[]){
+    bounds[0]= max(0,2*max(Ns[0]->c[1],Ns[1]->c[1])); /*UpperBound*/
+    bounds[1]= min(0,2*min(Ns[0]->c[1],Ns[1]->c[1])); /*LowerBound*/
+    bounds[2]= max(0,2*max(Ns[0]->c[0],Ns[1]->c[0])); /*RightBound*/
+    bounds[3]= min(0,2*min(Ns[0]->c[0],Ns[1]->c[0])); /*LeftBound */
+}
+
+int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
+    int i;
+    if(bo && t>tb){
+            bo=0;
+            printf("Tempo Limite de simulação dos projéteis alcançado!\n\n");
+        }
+        /* resultados impressos na saída padrão */
+        printf("Tempo %.3lf:\n",t);
+        for(i=0;i<2;i++){
+            printf("%5s:      x: %12.4e | y: %12.4e |",Ns[i]->nome,Ns[i]->c[0],Ns[i]->c[1]);
+            printf(" vx: %12.4e | vy: %12.4e\n",Ns[i]->v[0],Ns[i]->v[1]);
+        }
+        if(bo)
+            for(i=0;i<nb;i++){
+                printf("projétil%d:  x: %12.4e | y: %12.4e |",i+1,Bs[i]->c[0],Bs[i]->c[1]);
+                printf(" vx: %12.4e | vy: %12.4e \n",Bs[i]->v[0],Bs[i]->v[1]);
+            }
+        printf("\n");
+    return bo;
+}
+
+void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[]){
+    /*simulação em t no intervalo [0,tf] em stepsizes dt */
     double t = 0;
+    int i,bo=1;
+
+    printf("\nSimulação Iniciada!\n");
+
     for(t = 0; t < tf; t += dt){
+        
+        bo=ImprimeDados(bo,t,tb,nb,Ns,Bs); 
+
         Update(Bs, Ns, P, nb, dt, t, tb);
-        printf("%s: %lf %lf / ", Ns[0]->nome, Ns[0]->c[0], Ns[0]->c[1]);
-        printf("%s: %lf %lf / t=%lf\n", Ns[1]->nome, Ns[1]->c[0], Ns[1]->c[1], t);
+
+        for(i=0;i<nb;i++){
+            Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+        }
+        for(i=0;i<2;i++){
+            Ns[i]->c=CheckLimits(Ns[i]->c,bounds);
+        }
+
     }
+    printf("Simulação Finalizada!\n");
 }
-
-
-int main(){
+int main(int argc, char*argv[]){
     int i,j,nb;
-    double dt = 1, tb;
+    double dt = atof(argv[1]) /*timestep dado por linha de comando*/, tb, bounds[4]/*limites do mapa a serem definidos*/;
     double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
     char** Nomes = malloc(sizeof(char*)*2);
     Nave* Ns;
     Planet P;
     Bullet* Bs;
     
-    /*input para criação dos objetos: massa, raio e tempo total*/
+    /*input para criação do Planeta: massa, tempo total e raio*/
     for(i = 0; i < 3; i++) {
         scanf("%lf", &DadosP[i]);
     }
 
     P = CriaPlaneta(DadosP[0], DadosP[1], DadosP[2]);
     
+
+    /*input para criação das Naves*/
     for(i = 0; i < 2; i++) {
         DadosN[i] = malloc(sizeof(double)*5); /* Massa, pos_x, pos_y, vel_x, vel_y */
         Nomes[i]  = malloc(sizeof(char)*20);  /* Nome das naves */
@@ -303,10 +390,12 @@ int main(){
 
     Ns = CriaNaves(DadosN, Nomes);
 
-    scanf("%d", &nb);  /* número de projéteis */
-    scanf("%lf", &tb); /* tempo projéteis */
+    DefineBoundaries(Ns,bounds);
 
-    /* Dados dos projéteis {massa, pos_x, etc} */
+    /*input para criação dos Projéteis*/
+    scanf("%d", &nb);  /* número de projéteis */
+    scanf("%lf", &tb); /* tempo de simulação dos projéteis */
+
     DadosB = malloc(sizeof(double*)*nb); 
     for(i = 0; i < nb ; i++){
         DadosB[i] = malloc(sizeof(double)*5);
@@ -317,8 +406,21 @@ int main(){
 
     Bs = CriaBullets(DadosB, nb);
 
+    for(i=0;i<nb;i++){
+        Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+    }
+
+    printf("Simulação prestes a ser iniciada...\n");
+    printf("TimeStep: %.4lf\n",dt);
+    printf("Número de projéteis: %d\n",nb);
+    printf("Tempo de simulação: %.3lf\n",P->t);
+    printf("Limite Superior do Mapa: %.3e\n",bounds[0]);
+    printf("Limite Inferior do Mapa: %.3e\n",bounds[1]);
+    printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
+    printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
+
     /*simulação do movimento*/
-    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb);  
+    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds);  
 
     /*desalocando os vetores*/
     for(i = 0; i < 2; i++){
@@ -341,3 +443,4 @@ int main(){
     
     return 0;
 }
+
