@@ -284,7 +284,7 @@ int main(){
     Planet P;
     Bullet* Bs;
     
-    /*input para criação dos objetos: massa, tempo total e raio*/
+    /*input para criação dos objetos: massa, raio e tempo total*/
     for(i = 0; i < 3; i++) {
         scanf("%lf", &DadosP[i]);
     }
@@ -303,8 +303,8 @@ int main(){
 
     Ns = CriaNaves(DadosN, Nomes);
 
-    scanf("%d", &nb);  /* número de projéteis? */
-    scanf("%lf", &tb); /* ??? */
+    scanf("%d", &nb);  /* número de projéteis */
+    scanf("%lf", &tb); /* tempo projéteis */
 
     /* Dados dos projéteis {massa, pos_x, etc} */
     DadosB = malloc(sizeof(double*)*nb); 
