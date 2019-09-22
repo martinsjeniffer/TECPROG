@@ -3,7 +3,7 @@ Projeto MAC-0216 Técnicas de Programação 1 - Projeto 1
 Alunos:
 Vitor Daisuke Tamae NUSP 10705620
 Jeniffer NUSP ??
-Giulia NUSP ??
+Giulia Cunha de Nardi NUSP 10692203
 
 O projeto é composto por um arquivo C que recebe como argumento na linha de comando o TimeStep da simulação e na entrada padrão os dados listados no enunciado do ep. Os testes fornecidos estão na pasta input.
 
