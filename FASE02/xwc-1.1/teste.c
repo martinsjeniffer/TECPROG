@@ -18,16 +18,16 @@ int main(int ac, char **av)
   /* getchar(); */
 
   for (ii = 0; ii < 400; ii++) {
-	Color cor = 256*256*255+ 256*(ii%256) + (ii%175);
-	WPlot(w,ii,200, cor);
+	  Color cor = 130;
+	  WPlot(w,ii,ii, cor);
   }
   WLine(w,1,1,300,300,0xffd700);
 
-  for (a = 0.; a < 1.75; a+=.1)
+  /*for (a = 0.; a < 1.75; a+=.1)
     WLine(w,0,0,100, 100*tan(a), 0x000495);
-
-  WCor(w,c=WNamedColor("gold"));
-  WPrint(w,10,10,"So isso");
+*/
+  WCor(w,c=WNamedColor("green"));
+  WPrint(w,100,100,"CU");
 
   c = WNamedColor("Red");
   puts("Agora,  escreva vários nomes de cores,  ou uma cor no  formato\n"
