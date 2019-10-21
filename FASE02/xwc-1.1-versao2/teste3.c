@@ -61,6 +61,7 @@ PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg, PIC P,MASK Msk,int i,int j){
     return Paux;
 }
 
+//PIC RotateShip (int io, int jo, int i, int j, PIC *p[11])
 
 void DrawWindow(WINDOW* w1,PIC Pf, PIC P1,PIC P2, PIC Paux1, PIC Pbkg,PIC Paux2, MASK Msk1,MASK Msk2,Nave* Ns,double bounds[],
 PIC* Paux,PIC* Pproj,MASK* MskProj,Bullet* Bs,int nb,double t,double tb){
