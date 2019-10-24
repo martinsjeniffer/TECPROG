@@ -1,129 +1,134 @@
 #include <stdio.h>
 #include <unistd.h>
-#include <stdlib.h>
 #include "xwc.h"
+#include <math.h>
+
+#define NumIma 5 //numero de imagens para cada lado rotacao
+#define PI 3.14159
+#define erro 0.001
+int igual (double a, double b)
+{
+  if (a-b> -erro && a-b<erro)
+    return 1;
+  else
+   return 0;
+}
+
+int ImaUpd (int io, int jo, int i, int j, int atual)
+{
+  /*
+  Vetor de imagens com a seguinte organização:
+  0... |n  ...  |2n... |3n
+  cima |direita |baixo |esquerda
+  Função definida para movimentos de 0 à 180 graus
+  Recebe posição atual (io,jo), posição futura (i,j), int da pic atual
+  Devolve uma int para ser colocada no vetor de imagens
+  */
+  double alpha; //angulo entre pontos
+  int c;
+  if ((i-io)*(i-io) + (j-jo)*(j-jo) == 0) // não se mexeu
+  {
+    return atual;
+  }
+
+
+  if (j>=jo && i>=io) {  //primeiro quadrante
+    //calcula alpha
+    //printf ("sin = %lf \n", (i-io)*1.0/sqrt((i-io)*(i-io) + (j-jo)*(j-jo)));
+    alpha = asin((i-io)*1.0/sqrt((i-io)*(i-io) + (j-jo)*(j-jo)));
+    //printf ("alpha = %lf \n", alpha);
+    for (c=0; c <= NumIma; c++)
+      if (alpha <= c*PI/(2*NumIma) || igual (alpha, c*PI/(2*NumIma)))
+        return c;
+    puts("Erro rotacao 1");
+  }
+  else if (j<jo && i>=io) {  //quarto quadrante
+    alpha = asin((jo-j)*1.0/sqrt((i-io)*(i-io) + (j-jo)*(j-jo))*1.0);
+    for (c=1; c <= NumIma; c++)
+      if (alpha < c*PI/(2*NumIma) || igual (alpha, c*PI/(2*NumIma)))
+        return NumIma+c;
+   puts("Erro rotacao 4");
+  }
+  else if (j<=jo && i<io) {  //terceiro quadrante
+    alpha = asin((io-i)*1.0/sqrt((i-io)*(i-io) + (j-jo)*(j-jo))*1.0);
+    for (c=1; c <= NumIma; c++)
+      if (alpha <= c*PI/(2*NumIma)  || igual (alpha, c*PI/(2*NumIma)))
+        return 2*NumIma+c;
+    puts("Erro rotacao 3");
+  }
+  else {  //segundo quadrante (j>jo e i<=io)
+    //puts("entrou 2");
+    //alpha = asin((j-jo)*1.0/sqrt((i-io)*(i-io) + (j-jo)*(j-jo))*1.0);
+    printf ("alpha = %lf \n", alpha);
+    for (c=1; c < NumIma; c++)
+      if (alpha <= c*PI/(2*NumIma)  || igual (alpha, c*PI/(2*NumIma)))
+        return 3*NumIma+c;
+    return 0; //chegou a "cima" pela esquerda
+  }
+}
 
 int main(int ac, char **av)
 {
-  int ii, jj, vezes = 1;
-  PIC P1, P2, P3;
-  MASK Msk;
+  PIC P1, P2, P3, Aux;
+  PIC p[1+2*NumIma];
+#ifdef NOXPM
+  puts("Este programa só funciona com a biblioteca Xpm!");
+#else
   WINDOW *w1;
-
-  Color cara, olho, nariz, boca;
-
-  if (ac > 1) vezes = atoi(av[1]);
-  else puts(
-		"Você pode dizer quantas vezes rodar uma animação\n"
-		"pela linha de comando, por exemplo\n"
-		"    teste2 5");
-
-  w1 = InitGraph(400,400, "Teste animado");
-  cara = WNamedColor("pink");
-  olho = WNamedColor("blue");
-  cara = WNamedColor("#f38080");
-  boca = WNamedColor("#f80000");
-  nariz = boca;
-
-
-  /* Inicializa leitura do teclado */
-  InitKBD(w1);
-
-  P1 = NewPic(w1, 800, 100);
-  /*  P1 = InitGraph( 800, 100, "P1");*/
-  WFillRect(P1, 0, 0, 800, 100, 0);
-
-  /* Rascunho */
-  P2 = NewPic(w1, 100, 100);
-  P3 = NewPic(w1, 400, 100);
-  /*P3 = InitGraph(400, 100, "P3");*/
-
-  Msk = NewMask(w1, 100, 100);
-  WFillArc(Msk, 0, 0, 0, 360*64, 100, 100, 1);
-
-  /* desenhos */
-
-  WFillArc(P1,   0,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1,  25, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1,  75, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1,  25, 75, 0, 360*64,  50,   1, boca);
-  WFillArc(P1,  45, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 100,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 125, 25, 0, 360*64,  10,   8, olho);
-  WFillArc(P1, 175, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 125, 75, 0, 360*64,  50,   5, boca);
-  WFillArc(P1, 145, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 200,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 225, 25, 0, 360*64,  10,   6, olho);
-  WFillArc(P1, 275, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 225, 75, 0, 360*64,  50,   7, boca);
-  WFillArc(P1, 245, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 300,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 325, 25, 0, 360*64,  10,   4, olho);
-  WFillArc(P1, 375, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 325, 75, 0, 360*64,  50,  10, boca);
-  WFillArc(P1, 345, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 400,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 425, 25, 0, 360*64,  10,   1, olho);
-  WFillArc(P1, 475, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 425, 75, 0, 360*64,  50,   7, boca);
-  WFillArc(P1, 445, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 500,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 525, 25, 0, 360*64,  10,   4, olho);
-  WFillArc(P1, 575, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 525, 75, 0, 360*64,  50,   4, boca);
-  WFillArc(P1, 545, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 600,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 625, 25, 0, 360*64,  10,   6, olho);
-  WFillArc(P1, 675, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 625, 75, 0, 360*64,  50,   7, boca);
-  WFillArc(P1, 645, 45, 0, 360*64,  10,  10, nariz);
-
-  WFillArc(P1, 700,  0, 0, 360*64, 100, 100, cara);
-  WFillArc(P1, 725, 25, 0, 360*64,  10,   8, olho);
-  WFillArc(P1, 775, 25, 0, 360*64,  10,  10, olho);
-  WFillArc(P1, 725, 75, 0, 360*64,  50,   1, boca);
-  WFillArc(P1, 745, 45, 0, 360*64,  10,  10, nariz);
-
-  /* Este é um exemplo de uma chamada direta ao X. Veja a página do */
-  /* manual correspondente e olhe tempo xwc.c e xwc.h			 	*/
-  XWriteBitmapFile(GetDisplay(), "caca", GetDraw(P1), 800,100, 0,0);
-
-  for (ii = 0; ii < 400; ii+=4) 
-	WLine(w1, 0, ii, 400, ii, (ii/4)*16);
-
-  puts("Pronto, pressione uma tecla na janela");
-  printf(">>> %d\n", WGetKey(w1));
-
-  PutPic(P3, w1, 0, 100, 400, 100, 0, 0);
-
-  SetMask(P3,Msk);
-  for (jj = 0; jj < vezes; jj++) {
-	for (ii = 0; ii < 100; ii++) {
-	  PutPic(P2, P3,  50+ii, 0, 100, 100, 0, 0);
-	  
-	  PutPic(P3, P1, (ii%8)*100,   0, 100, 100, 50+ii, 0);
-	  PutPic(w1, P3, 0, 0, 400, 100, 0, 100);
-	  
-	  PutPic(P3, P2,	0,   0, 100, 100, 50+ii, 0);
-	  usleep(25000);
-	}
+  MASK msk;
+  int i, io, j, jo, ant, ok;
+  
+  /*w1 = InitGraph(400,400, "Arquivos");
+  P1 = ReadPic(w1, "images/nave.xpm", NULL);
+  P2 = ReadPic(w1, "mascara.xpm", NULL);
+  //P3 = ReadPic(w1, "Nose.xpm", NULL);
+  //P2 = MountPic(w1, nose, NULL);
+  
+  for (int c = 0; c < NumIma; c++) {
+     p[c] = P1;
+     p[2*NumIma-c] = P2;
   }
+  p[5] = P1;
+ */
+  //msk = NewMask(*p[1], 32, 32);
+  //Aux = ReadPic(w1, "mascara.xpm", msk);
+  ok=0;
+  ant=0;
+  while (!ok) {
+   puts("digite io, jo, i, j");
+   scanf ("%d %d %d %d", &io, &jo, &i, &j);
+   ant = ImaUpd( io, jo, i, j, ant);
+   printf("%d \n",  ant);
+   puts("parar?");
+   scanf ("%d", &ok);
+  }
+/*  puts("Tecle <enter>"); getchar();
 
-  puts("Pronto, pressione mais uma tecla na janela");
-  printf(">>> %d\n", WGetKey(w1));
+  PutPic(w1, p[1], 0,0, 100, 100, 100, 0);
+  puts("Tecle <enter>"); getchar();
 
-  PutPic(w1, P1,   0, 0, 400, 100,  0, 100);
-  PutPic(w1, P1, 400, 0, 800, 100,  0, 300);
+  PutPic(w1, p[2], 0,0, 100, 100, 200, 0);
+  puts("Tecle <enter>"); getchar();
 
-  puts("Fim, aperte <enter> aqui.");
-  getchar();
-  CloseGraph();
+  //PutPic(w1, P2, 0,0, 100, 100, 100, 0);
+
+  /*puts("Agora  a figura  do arquivo mascara.xpm.");
+  puts("Tecle <enter>"); getchar();
+  PutPic(w1, Aux, 0,0, 100, 100, 200, 0);*/
+
+  /*puts("Sobrepondo a última figura com a primeira\n"
+	   "e usando sua  própria máscara.");
+  SetMask(w1,msk);
+  puts("Tecle <enter>"); getchar();
+  PutPic(w1, Aux, 0,0, 100, 100, 0, 0);
+  puts("Tecle <enter>"); getchar();
+
+  puts("Gravando o narigudo em Nose.xpm.");
+  WritePic(P2,"Nose.xpm", NULL);
+  puts("Gravando samp.xpm mascarado em Tutti.xpm.");
+  WritePic(P1,"Tutti.xpm", msk);
+  puts("Tecle <enter>"); getchar();
+  CloseGraph();*/
+#endif
   return 0;
 }
