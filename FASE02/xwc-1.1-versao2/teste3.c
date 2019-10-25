@@ -550,43 +550,43 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     /*criação das mascaras para tornam o fundo dos objetos transparente*/
     Mskplnt = NewMask(w1,400,400);
     for (i=0; i<4*NumIma; i++) {
-        Mrt[i] = NewMask(w1,100,100);
-        Mrt2[i] = NewMask(w1,100,100);
+        Mrt[i] = NewMask(w1,150,150);
+        Mrt2[i] = NewMask(w1,150,150);
       }
-    P1[0] = ReadPic(w1, "images/tiro00.xpm", Mrt[0]);
-    P1[1] = ReadPic(w1, "images/tiro01.xpm", Mrt[1]);
-    P1[2] = ReadPic(w1, "images/tiro02.xpm", Mrt[2]);
-    P1[3] = ReadPic(w1, "images/tiro03.xpm", Mrt[3]);
-    P1[4] = ReadPic(w1, "images/tiro04.xpm", Mrt[4]);
-    P1[5] = ReadPic(w1, "images/tiro05.xpm", Mrt[5]);
-    P1[6] = ReadPic(w1, "images/tiro06.xpm", Mrt[6]);
-    P1[7] = ReadPic(w1, "images/tiro07.xpm", Mrt[7]);
-    P1[8] = ReadPic(w1, "images/tiro08.xpm", Mrt[8]);              /*leitura das imagens*/
-    P1[9] = ReadPic(w1, "images/tiro09.xpm", Mrt[9]);
-    P1[10] = ReadPic(w1, "images/tiro10.xpm", Mrt[10]);
-    P1[11] = ReadPic(w1, "images/tiro11.xpm", Mrt[11]);
-    P1[12] = ReadPic(w1, "images/tiro12.xpm", Mrt[12]);
+    P1[0] = ReadPic(w1, "images/nave.xpm", Mrt[0]);
+    P1[1] = ReadPic(w1, "images/nave.xpm", Mrt[1]);
+    P1[2] = ReadPic(w1, "images/nave.xpm", Mrt[2]);
+    P1[3] = ReadPic(w1, "images/nave.xpm", Mrt[3]);
+    P1[4] = ReadPic(w1, "images/nave12-4.xpm", Mrt[4]);
+    P1[5] = ReadPic(w1, "images/nave12-5.xpm", Mrt[5]);
+    P1[6] = ReadPic(w1, "images/nave12-6.xpm", Mrt[6]);
+    P1[7] = ReadPic(w1, "images/nave12-7.xpm", Mrt[7]);
+    P1[8] = ReadPic(w1, "images/nave12-8.xpm", Mrt[8]);              /*leitura das imagens*/
+    P1[9] = ReadPic(w1, "images/nave12-9.xpm", Mrt[9]);
+    P1[10] = ReadPic(w1, "images/nave12-10.xpm", Mrt[10]);
+    P1[11] = ReadPic(w1, "images/nave.xpm", Mrt[11]);
+    P1[12] = ReadPic(w1, "images/nave.xpm", Mrt[12]);
     P1[13] = ReadPic(w1, "images/tiro13.xpm", Mrt[13]);
     P1[14] = ReadPic(w1, "images/tiro14.xpm", Mrt[14]);
     P1[15] = ReadPic(w1, "images/tiro15.xpm", Mrt[15]);
 
-    P2[0] = ReadPic(w1, "images/tiro00.xpm", NULL);
-    P2[1] = ReadPic(w1, "images/tiro01.xpm", NULL);
-    P2[2] = ReadPic(w1, "images/tiro02.xpm", NULL);
-    P2[3] = ReadPic(w1, "images/tiro03.xpm", NULL);
-    P2[4] = ReadPic(w1, "images/tiro04.xpm", NULL);
-    P2[5] = ReadPic(w1, "images/tiro05.xpm", NULL);
-    P2[6] = ReadPic(w1, "images/tiro06.xpm", NULL);
-    P2[7] = ReadPic(w1, "images/tiro07.xpm", NULL);
-    P2[8] = ReadPic(w1, "images/tiro08.xpm", NULL);              /*leitura das imagens*/
-    P2[9] = ReadPic(w1, "images/tiro09.xpm", NULL);
-    P2[10] = ReadPic(w1, "images/tiro10.xpm", NULL);
-    P2[11] = ReadPic(w1, "images/tiro11.xpm", NULL);
-    P2[12] = ReadPic(w1, "images/tiro12.xpm", NULL);
-    P2[13] = ReadPic(w1, "images/tiro13.xpm", NULL);
-    P2[14] = ReadPic(w1, "images/tiro14.xpm", NULL);
-    P2[15] = ReadPic(w1, "images/tiro15.xpm", NULL);
-    //P2 = ReadPic(w1, "images/nave2.xpm", Msk2);
+    P2[0] = ReadPic(w1, "images/nave.xpm", Mrt2[0]);
+    P2[1] = ReadPic(w1, "images/nave.xpm", Mrt2[1]);
+    P2[2] = ReadPic(w1, "images/nave.xpm", Mrt2[2]);
+    P2[3] = ReadPic(w1, "images/nave.xpm", Mrt2[3]);
+    P2[4] = ReadPic(w1, "images/nave12-4.xpm", Mrt2[4]);
+    P2[5] = ReadPic(w1, "images/nave12-5.xpm", Mrt2[5]);
+    P2[6] = ReadPic(w1, "images/nave12-6.xpm", Mrt2[6]);
+    P2[7] = ReadPic(w1, "images/nave12-7.xpm", Mrt2[7]);
+    P2[8] = ReadPic(w1, "images/nave12-8.xpm", Mrt2[8]);              /*leitura das imagens*/
+    P2[9] = ReadPic(w1, "images/nave12-9.xpm", Mrt2[9]);
+    P2[10] = ReadPic(w1, "images/nave12-10.xpm", Mrt2[10]);
+    P2[11] = ReadPic(w1, "images/nave12-11.xpm", Mrt2[11]);
+    P2[12] = ReadPic(w1, "images/tiro12.xpm", Mrt2[12]);
+    P2[13] = ReadPic(w1, "images/tiro13.xpm", Mrt2[13]);
+    P2[14] = ReadPic(w1, "images/tiro14.xpm", Mrt2[14]);
+    P2[15] = ReadPic(w1, "images/tiro15.xpm", Mrt2[15]);
+
     Pbkg = ReadPic(w1, "images/background.xpm", NULL); //pic do background
     Pplnt = ReadPic(w1, "images/planeta_rosa.xpm", Mskplnt); //pic do planeta
     for(i=0;i<nb;i++){
@@ -605,7 +605,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     PutPic(Pbkg, Pplnt,  0, 0, 400, 400, -200, -200);
     PutPic(Paux2, Pbkg,  0, 0, WW, WH,0, 0);
 
-    PrepareMask(w1,Paux1,Msk1);
+  //  PrepareMask(w1,Paux1,Msk1);
 /*
     PrepareMask(w1,Paux2,Msk2);
     PrepareMask(w1,Paux1,Msk1);*/
@@ -634,28 +634,29 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
         //PrepareMask(w1,Pa,Msk1);
         //PrepareMask(w1,P2[ImaUpd(xo[1],yo[1],x[1],y[1])],Msk2);
 
-        giu = ImaUpd(xo[0],yo[0],x[0],y[0], giu);
-        in2 = ImaUpd(xo[0],yo[0],x[0],y[0], in2);
-        PrepareMask(w1,Paux2,Mrt[giu]);
-        PrepareMask(w1,Paux1,Mrt2[in2]);
-        DrawWindow(w1,Pf,P1[giu],P2[in2],Paux1,Pbkg,Paux2,                /*desenha objetos*/
-        Mrt[giu],Msk2,Ns,bounds,Paux,Pproj,MskProj,Bs,nb,t,tb);
+        in1 = ImaUpd(xo[0],yo[0],x[0],y[0], in1);
+        in2 = ImaUpd(xo[1],yo[1],x[1],y[1], in2);
+        PrepareMask(w1,Paux2,Mrt[in1]);
+        PrepareMask(w1,Paux2,Mrt2[in2]);
+        DrawWindow(w1,Pf,P1[in1],P2[in2],Paux1,Pbkg,Paux2,                /*desenha objetos*/
+        Mrt[in1],Mrt[in2],Ns,bounds,Paux,Pproj,MskProj,Bs,nb,t,tb);
 
         usleep(20000);                                          /*intervalo entre frames*/
     }
     getchar();
     CloseGraph();
     FreePic(Pf);
-    for (giu=0; giu<4*NumIma; giu++) {
-      FreePic(P1[giu]);
-      FreePic(P2[giu]);
-      FreePic(Mrt[giu]);
+    for (i=0; i<4*NumIma; i++) {
+      FreePic(P1[i]);
+      FreePic(P2[i]);
+      FreePic(Mrt[i]);
+      FreePic(Mrt2[i]);
     }
     FreePic(Paux1);
     FreePic(Paux2);
     FreePic(Pplnt);
     FreePic(Pbkg);
-    FreePic(Msk2);
+  //  FreePic(Msk2);
     FreePic(Mskplnt);
     for(i=0;i<nb;i++){
         FreePic(Pproj[i]);
