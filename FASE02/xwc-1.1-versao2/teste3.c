@@ -132,7 +132,7 @@ PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg, PIC P[4*NumIma],MASK Msk,int i,int j)
     PutPic(Paux, Pbkg,  0, 0, WW, WH, 0, 0);
     SetMask(Paux,Msk);
     PutPic(Paux, P,  0, 0, 100, 100, i, j);
-    return Paux;
+    return Paux;/slides/
 }
 
 
@@ -248,7 +248,7 @@ Bullet CriaBullet(double m,double x, double y,double vx,double vy){
     c = malloc(sizeof(double)*2); /* posições    */
     v = malloc(sizeof(double)*2); /* velocidade  */
     a = malloc(sizeof(double)*2); /* aceleração  */
-    B->m=m;
+    B->m=m;/slides/
     B->c=c;
     B->v=v;
     B->a=a;
@@ -358,7 +358,7 @@ double* gravityBB(Bullet B1,Bullet B2){
     return g;
 }
 
-void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb){
+void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, dou/slides/ble dt, double t, double tb){
     /* recebe
     vetor com projeteis Bs
     vetor com naves Ns
