@@ -66,32 +66,34 @@ Sprite CriaSprite(int norb, WINDOW* w1){
     Sprite S = malloc(sizeof(struct sprite));
     int i;
     char str[50],strint[10],strnave[2];
-    S->P=malloc(4*NumIma*(sizeof(PIC)));
-    S->Aux=malloc(4*NumIma*(sizeof(PIC)));
-    S->Msk=malloc(4*NumIma*(sizeof(MASK)));
-    if(norb==0){
-        for(i=0;i<4*NumIma;i++){
+    S->P   = malloc(4*NumIma*(sizeof(PIC)));
+    S->Aux = malloc(4*NumIma*(sizeof(PIC)));
+    S->Msk = malloc(4*NumIma*(sizeof(MASK)));
+    
+    if(norb == 0){
+        for(i = 0; i < 4*NumIma; i++){
             S->Msk[i] = NewMask(w1,WW,WH);
-            strcpy(str,"images/bullet/tiro");
+            strcpy (str,"images/bullet/tiro");
             sprintf(strint,"%d",i);
-            strcat(str,strint);
-            strcat(str,".xpm");
-            S->P[i] = ReadPic(w1, str, S->Msk[i]);
+            strcat (str,strint);
+            strcat (str,".xpm");
+            S->P[i]   = ReadPic(w1, str, S->Msk[i]);
             S->Aux[i] = NewPic(w1, WW, WH);
             PrepareMask(w1, S->Aux[i], S->Msk[i]);
         }
         return S;
     }
-    for(i=0;i<4*NumIma;i++){
+
+    for(i = 0; i < 4*NumIma; i++){
         S->Msk[i] = NewMask(w1,WW,WH);
-        strcpy(str,"images/nave/nave");
+        strcpy (str,"images/nave/nave");
         sprintf(strnave,"%d",norb);
         sprintf(strint,"%d",i);
-        strcat(str,strnave);
-        strcat(str,"-");
-        strcat(str,strint);
-        strcat(str,".xpm");
-        S->P[i] = ReadPic(w1, str, S->Msk[i]);
+        strcat (str,strnave);
+        strcat (str,"-");
+        strcat (str,strint);
+        strcat (str,".xpm");
+        S->P[i]   = ReadPic(w1, str, S->Msk[i]);
         S->Aux[i] = NewPic(w1, WW, WH);
         PrepareMask(w1, S->Aux[i], S->Msk[i]);
     }
@@ -105,21 +107,21 @@ Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome,WIN
     c = malloc(sizeof(double)*2); /* vetor posição    */
     v = malloc(sizeof(double)*2); /* vetor velocidade */
     a = malloc(sizeof(double)*2); /* vetor aceleração */
-    N->spt= CriaSprite(numnave,w1);
-    N->nome=nome;
-    N->m=m;
-    N->c=c;
-    N->v=v;
-    N->a=a;
-    N->o=0; //começa apontando para cima
-    N->c[0]=x;
-    N->c[1]=y;
+    N->spt  = CriaSprite(numnave,w1);
+    N->nome = nome;
+    N->m = m;
+    N->c = c;
+    N->v = v;
+    N->a = a;
+    N->o = 0; //começa apontando para cima
+    N->c[0] = x;
+    N->c[1] = y;
 
-    N->v[0]=vx;
-    N->v[1]=vy;
+    N->v[0] = vx;
+    N->v[1] = vy;
 
-    N->a[0]=0;
-    N->a[1]=0;
+    N->a[0] = 0;
+    N->a[1] = 0;
 
     return N;
 }
@@ -131,52 +133,47 @@ Nave* CriaNaves(double**naves, char**nomes,WINDOW* w1){
     for(i = 0; i < 2; i++){
         NaveList[i] = CriaNave(naves[i][0],naves[i][1],naves[i][2],naves[i][3],naves[i][4],nomes[i],w1,i+1);
     }
+
     return NaveList;
 }
 
 Planet CriaPlaneta(double r,double m,double t){
     Planet P = malloc(sizeof(struct planet));
-    P->m=m; /* massa */
-    P->t=t; /* tempo  de simulação*/
-    P->r=r; /* raio  */
+    P->m = m; /* massa */
+    P->t = t; /* tempo  de simulação*/
+    P->r = r; /* raio  */
     return P;
 }
 
 Bullet CriaBullet(double m,double x, double y,double vx,double vy,WINDOW* w1){
     Bullet B = malloc(sizeof(struct nave));
     double *c,*v,*a;
-    int i=0; //contador
+    int i = 0; //contador
     struct dirent *de;  // Pointer for directory entry
     c = malloc(sizeof(double)*2); /* vetor posição    */
     v = malloc(sizeof(double)*2); /* vetor velocidade */
     a = malloc(sizeof(double)*2); /* vetor aceleração */
-    B->spt= CriaSprite(0,w1);
-    B->m=m;
-    B->c=c;
-    B->v=v;
-    B->a=a;
-    B->o=0;
+    B->spt = CriaSprite(0,w1);
+    B->m = m;
+    B->c = c;
+    B->v = v;
+    B->a = a;
+    B->o = 0;
 
-    B->c[0]=x;
-    B->c[1]=y;
+    B->c[0] = x;
+    B->c[1] = y;
 
-    B->v[0]=vx;
-    B->v[1]=vy;
+    B->v[0] = vx;
+    B->v[1] = vy;
 
-    B->a[0]=0;
-    B->a[1]=0;
+    B->a[0] = 0;
+    B->a[1] = 0;
 
-    B->o=0;
+    B->o = 0;
 
     return B;
 }
 
-/*void DestoiPics (PIC P[4*NumIma+1])
-{
-  int i;
-  for (i=0; i<=4*NumIma; i++)
-    FreePic(i)
-}*/
 /* Criação dos projéteis fornecidos na entrada padrão */
 Bullet* CriaBullets(double**bullets, int nb,WINDOW* w1){
     int i = 0;
@@ -196,15 +193,15 @@ double AbsSqrd(double* c){
 /* Multiplica o vetor c por uma constante k */
 double* Multk(double* c, double k){
     double newx = c[0]*k, newy=c[1]*k;
-    c[0]=newx;
-    c[1]=newy;
+    c[0] = newx;
+    c[1] = newy;
     return c;
 }
 
 /* Adiciona o conteúdo de c2 em c */
 double* Add(double* c,double* c2){
-    c[0]=c[0]+c2[0];
-    c[1]=c[1]+c2[1];
+    c[0] = c[0] + c2[0];
+    c[1] = c[1] + c2[1];
     return c;
 }
 
@@ -217,16 +214,16 @@ double* Sub(double* c,double* c2){
 
 /* Retorna um vetor cópia de c */
 double* Copia(double* c){
-    double* c2=malloc(sizeof(double)*2);
-    c2[0]=c[0];
-    c2[1]=c[1];
+    double* c2 = malloc(sizeof(double)*2);
+    c2[0] = c[0];
+    c2[1] = c[1];
     return c2;
 }
 
 /* Força gravicional entre Planeta e Projétil */
 double* gravityPB(Planet P, Bullet B){
-    double* g=Copia(B->c);
-    double dist= (double)(-G*P->m*B->m/(pow(AbsSqrd(B->c),3/2)));
+    double* g =Copia(B->c);
+    double dist = (double)(-G*P->m*B->m/(pow(AbsSqrd(B->c),3/2)));
     g=Multk(g,dist);
     return g;
 }
@@ -234,9 +231,6 @@ double* gravityPB(Planet P, Bullet B){
 /* Interação entre o Planeta e Nave */
 double* gravityPN(Planet P, Nave N){
     double* g = Copia(N->c);
-
-    /*         -G * m * M         */
-    /*      (x**2 + y**2)^3/2    */
     double dist = (double)(-G* P->m * N->m/(pow(AbsSqrd(N->c),3/2)));
 
     g = Multk(g, dist);
@@ -245,7 +239,7 @@ double* gravityPN(Planet P, Nave N){
 
 /* Interação entre as naves */
 double* gravityNN(Nave N1,Nave N2){
-    double* g = Sub(Copia(N2->c),N1->c),
+    double* g    = Sub(Copia(N2->c), N1->c),
             dist = (double)(-G*N2->m*N1->m/(pow(AbsSqrd(g),3/2)));
 
     g = Multk(g,dist);
@@ -360,12 +354,13 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
     Ns[1]->v = Add(Ns[1]->v,Multk(Ns[1]->a,dt));
     Ns[0]->c = Add(Ns[0]->c,Multk(Ns[0]->v,dt));
     Ns[1]->c = Add(Ns[1]->c,Multk(Ns[1]->v,dt));
-    Ns[0]->v=Multk(Ns[0]->v,(double)1/dt);
-    Ns[1]->v=Multk(Ns[1]->v,(double)1/dt);
+    Ns[0]->v = Multk(Ns[0]->v,(double)1/dt);
+    Ns[1]->v = Multk(Ns[1]->v,(double)1/dt);
 }
 
 double AbsVal(double x){
-    if(x>=0)return x;
+    if(x >= 0)return x;
+    
     return -x;
 }
 
@@ -383,12 +378,12 @@ double* CheckLimits(double*c,double bounds[]){
 }
 
 double max(double x, double y){
-    if(x>y)return x;
+    if(x > y)return x;
     return y;
 }
 
 double min(double x, double y){
-    if(x<y)return x;
+    if(x < y)return x;
     return y;
 }
 
@@ -406,35 +401,35 @@ int Orientacao(double *a)
   int r;
 
   alpha = atan((double)(a[1]/a[0])); //angulo entre vetor a e (0,1)
-  segm = 2*M_PI/(4*NumIma);
+  segm  = 2*M_PI/(4*NumIma);
 
-  //0<=alpha<=PI, escolhe 0=<i<=NumIma que é mais prox de alpha, i é imagem i*PI/2*NumIma
+  //0 <= alpha <= PI, escolhe 0 =< i <= NumIma que é mais prox de alpha, i é imagem i*PI/2*NumIma
   r=alpha>0 ? alpha/segm : (alpha+2*M_PI)/segm;
   return r;
 }
 
 void PrepareMask(WINDOW* w1, PIC P, MASK Msk){
-  /* recebe
-    window w1
-    pic auxiliar para aplicar mascara P
-    mascara a ser aplicada Msk
-
-    aplica Msk em P
-  */
+   /*   recebe 
+    *       - window w1
+    *       - pic auxiliar para aplicar mascara P
+    *       - mascara a ser aplicada Msk
+    * 
+    *   aplica Msk em P
+    */
 
   PutPic(w1, P,  0, 0, WW, WH, 0, 0);
   SetMask(P,Msk);
 }
 
 PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg, PIC P,MASK Msk,int i,int j){
-    /* recebe
-    window w1
-    pic auxiliar Paux
-    pic do background Pbkg
-    pic do objeto P
-    mask do objeto Msk
-
-    desenha o objeto em Paux na posição (i,j) e retorna Paux
+    /*  recebe
+    *       - window w1
+    *       - pic auxiliar Paux
+    *       - pic do background Pbkg
+    *       - pic do objeto P
+    *       - mask do objeto Msk
+    * 
+    *   desenha o objeto em Paux na posição (i,j) e retorna Paux
     */
 
     UnSetMask(Paux);
@@ -445,124 +440,131 @@ PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg, PIC P,MASK Msk,int i,int j){
 }
 
 void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb){
-    /* recebe
-    window w1
-    pic transitorio para sobrepor todos os objetos Pf
-    pic da nave1 P1
-    pic da nave2 P2
-    pic auxiliar da nave1 Paux1
-    pic do background Pbkg
-    pic auxiliar da nave2 Paux2
-    mask da nave1 Msk1
-    mask da nave2 Msk2
-    Vetor contendo as duas naves Ns
-    fronteiras do mapa bounds
-    vetor de pics auxiliares dos projeteis Paux
-    vetor de pics dos projeteis Pproj
-    vetor de masks dos projeteis MaskProj
-    Vetor contendo projeteis Bs
-    numero de projeteis nb
-    tempo atual t
-    tempo limite dos projeteis tb
-
-    desenha todos os objetos em w1
-
-    as posições calculadas são recalculadas para as dimensões da tela
+   /*  recebe
+    *       - window w1
+    *       - pic transitorio para sobrepor todos os objetos Pf
+    *       - pic da nave1 P1
+    *       - pic da nave2 P2
+    *       - pic auxiliar da nave1 Paux1
+    *       - pic do background Pbkg
+    *       - pic auxiliar da nave2 Paux2
+    *       - mask da nave1 Msk1
+    *       - mask da nave2 Msk2
+    *       - Vetor contendo as duas naves Ns
+    *       - fronteiras do mapa bounds
+    *       - vetor de pics auxiliares dos projeteis Paux
+    *       - vetor de pics dos projeteis Pproj
+    *       - vetor de masks dos projeteis MaskProj
+    *       - Vetor contendo projeteis Bs
+    *       - numero de projeteis nb
+    *       - tempo atual t
+    *       - tempo limite dos projeteis tb
+    * 
+    *   desenha todos os objetos em w1
+    * 
+    *   as posições calculadas são recalculadas para as dimensões da tela
     */
 
     int i;
 
-    Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
-    (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]));
+    Pf = DrawShip(w1, Ns[0]->spt->Aux[Ns[0]->o],    
+                  Pbkg,Ns[0]->spt->P[Ns[0]->o],
+                  Ns[0]->spt->Msk[Ns[0]->o],
+                  (-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+                  (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]));
 
-    Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
-    (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]));
-    if(t<tb){
-        for(i=0;i<nb;i++){
-            Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
-            (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]));
+    Pf = DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],
+                  Pf,Ns[1]->spt->P[Ns[1]->o],
+                  Ns[1]->spt->Msk[Ns[1]->o],
+                  (-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+                  (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]));
+    if(t < tb){
+        for(i = 0; i < nb; i++){
+            Pf = DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],
+                          Pf,Bs[i]->spt->P[Bs[i]->o],
+                          Bs[i]->spt->Msk[Bs[i]->o],
+                          (-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+                          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]));
         }
     }
     PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
 }
 
 void DefineBoundaries(Nave* Ns,double bounds[]){
-    /*Os limites são definidos de acordo com as posições das naves*/
-    /*O limite superior, por exemplo, é definido como o máximo entre 0 e o dobro da maior das coordenadas y das naves */
-    /*Analogamente, o mínimo é definido o mínimo entre 0 e o dobro da menor das coordenadas y das naves  */
-    /*O mesmo é feito para os limites direito e esquerdo*/
-    bounds[0]= max(0,2*max(Ns[0]->c[1],Ns[1]->c[1])); /*UpperBound*/
-    bounds[1]= min(0,2*min(Ns[0]->c[1],Ns[1]->c[1])); /*LowerBound*/
-    bounds[2]= max(0,2*max(Ns[0]->c[0],Ns[1]->c[0])); /*RightBound*/
-    bounds[3]= min(0,2*min(Ns[0]->c[0],Ns[1]->c[0])); /*LeftBound */
+    /* Os limites são definidos de acordo com as posições das naves.
+     * O limite superior, por exemplo, é definido como o máximo entre 0 e o dobro da maior das coordenadas y das naves 
+     * Analogamente, o mínimo é definido o mínimo entre 0 e o dobro da menor das coordenadas y das naves 
+     * O mesmo é feito para os limites direito e esquerdo 
+     */
+    bounds[0] = max(0,2*max(Ns[0]->c[1],Ns[1]->c[1])); /*UpperBound*/
+    bounds[1] = min(0,2*min(Ns[0]->c[1],Ns[1]->c[1])); /*LowerBound*/
+    bounds[2] = max(0,2*max(Ns[0]->c[0],Ns[1]->c[0])); /*RightBound*/
+    bounds[3] = min(0,2*min(Ns[0]->c[0],Ns[1]->c[0])); /*LeftBound */
 }
 
 int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
-    /*autoexplicativo*/
     int i;
     if(bo && t>tb){
             bo=0;
             printf("Tempo Limite de simulação dos projéteis alcançado!\n\n");
         }
+
     /* resultados impressos na saída padrão */
     printf("Tempo %.3lf:\n",t);
-    for(i=0;i<2;i++){
-            printf("%5s:      x: %12.4e | y: %12.4e |",Ns[i]->nome,Ns[i]->c[0],Ns[i]->c[1]);
-            printf(" vx: %12.4e | vy: %12.4e\n",Ns[i]->v[0],Ns[i]->v[1]);
+    for(i = 0; i < 2; i++){
+            printf("%5s:      x: %12.4e | y: %12.4e |",Ns[i]->nome, Ns[i]->c[0], Ns[i]->c[1]);
+            printf(" vx: %12.4e | vy: %12.4e\n", Ns[i]->v[0], Ns[i]->v[1]);
     }
     if(bo)
-            for(i=0;i<nb;i++){
-                printf("projétil%d:  x: %12.4e | y: %12.4e |",i+1,Bs[i]->c[0],Bs[i]->c[1]);
-                printf(" vx: %12.4e | vy: %12.4e \n",Bs[i]->v[0],Bs[i]->v[1]);
+            for(i = 0; i < nb; i++){
+                printf("projétil%d:  x: %12.4e | y: %12.4e |", i + 1, Bs[i]->c[0], Bs[i]->c[1]);
+                printf(" vx: %12.4e | vy: %12.4e \n", Bs[i]->v[0], Bs[i]->v[1]);
             }
     printf("\n");
     return bo;
 }
 
 void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg, PIC Pf){
-    /* recebe
-    Vetor com projeteis Bs
-    vetor com naves Ns
-    Planeta P
-    numero de projeteis nb
-    timestep dt
-    tempo final tf
-    tempo maximo dos projeteis tb
-    vetor com fronteiras do mapa bounds
-
-    simula em t no intervalo [0,tf] em stepsizes dt,
-    calculando as posições dos projéteis e desenhando em uma janela
+    /*  recebe
+     *      - Vetor com projeteis Bs
+     *      - vetor com naves Ns
+     *      - Planeta P
+     *      - numero de projeteis nb
+     *      - timestep dt
+     *      - tempo final tf
+     *      - tempo maximo dos projeteis tb
+     *      - vetor com fronteiras do mapa bounds
+     * 
+     *  simula em t no intervalo [0,tf] em stepsizes dt,
+     *  calculando as posições dos projéteis e desenhando em uma janela
     */
     #ifdef NOXPM
     puts("Este programa só funciona com a biblioteca Xpm!");
     #else
-    double t=0;
-    int i, bo=1;
+    double t  = 0;
+    int i, bo = 1;
     printf("\nSimulação Iniciada!\n");
     
-
-  //  PrepareMask(w1,Paux1,Msk1);
-/*
-    PrepareMask(w1,Paux2,Msk2);
-    PrepareMask(w1,Paux1,Msk1);*/
     for(t = 0; t < tf; t += dt){
 
-        bo=ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /*impressão dos dados*/
+        bo = ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /* impressão dos dados*/
 
-        Update(Bs, Ns, P, nb, dt, t, tb);                       /*atualiza valor das posições dos objetos*/
+        Update(Bs, Ns, P, nb, dt, t, tb);                         /* atualiza valor das posições dos objetos*/
 
-        for(i=0;i<nb;i++){
-            Bs[i]->c=CheckLimits(Bs[i]->c,bounds);              /*se a posição nova estiver fora da fronteira*/
-        }                                                       /*o objeto reaparece*/
-        for(i=0;i<2;i++){                                       /*do outro lado do mapa*/
+        for(i = 0; i < nb; i++){
+            Bs[i]->c = CheckLimits(Bs[i]->c,bounds);              /* se a posição nova estiver fora da fronteira*/
+        }                                                         /* o objeto reaparece*/
+
+        for(i = 0; i < 2; i++){                                   /*do outro lado do mapa*/
             Ns[i]->c=CheckLimits(Ns[i]->c,bounds);
         }
 
 
         DrawWindow(w1,Pf,Pbkg,Ns,bounds,Bs,nb,t,tb);     /*desenha objetos*/
         usleep(20000);
-                                                /*intervalo entre frames*/
+                                                        /*intervalo entre frames*/
     }  
+
     getchar();
     CloseGraph();
     WDestroy(w1);
@@ -573,16 +575,17 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
 
 int main(int argc, char*argv[]){
     int i,j,nb;
-    double dt = atof(argv[1]) /*timestep dado por linha de comando*/, tb, bounds[4]/*limites do mapa a serem definidos*/;
-    double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
-    char** Nomes = malloc(sizeof(char*)*2);
-    Nave* Ns;
-    Planet P;
+    double dt = atof(argv[1]) /* timestep dado por linha de comando */,
+           tb, bounds[4]      /* limites do mapa a serem definidos  */;
+    double** DadosN = malloc(sizeof(double*)*2), *DadosP = malloc(sizeof(double*)*3), **DadosB;
+    char**   Nomes  = malloc(sizeof(char*)*2);
+    Nave*   Ns;
+    Planet  P;
     Bullet* Bs;
-  	WINDOW *w1;                           /*janela a ser utilizada*/
-    PIC Pf,                               /*Pic final utilizado para sobrepor os objetos 1 a 1*/
-        Pplnt,                            /*pic do planeta*/
-        Pbkg,                             /*pic do cenario*/
+  	WINDOW *w1;                           /* janela a ser utilizada*/
+    PIC Pf,                               /* pic final utilizado para sobrepor os objetos 1 a 1*/
+        Pplnt,                            /* pic do planeta*/
+        Pbkg,                             /* pic do cenario*/
         Paux2;
       //  *Pproj=malloc(nb*sizeof(PIC)),    /*vetor de pics dos projeteis*/
       //  *Paux=malloc(nb*sizeof(PIC));     /*vetor de pics auxiliares dos projeteis*/
@@ -592,17 +595,16 @@ int main(int argc, char*argv[]){
 
 
     w1 = InitGraph(WW,WH, "Arquivos");
-        /*criação das mascaras para tornam o fundo dos objetos transparente*/
+        /* criação das mascaras para tornam o fundo dos objetos transparente */
     Mskplnt = NewMask(w1,WW,WH);
 
     Pbkg = ReadPic(w1, "images/background.xpm", NULL); //pic do background
     Pplnt = ReadPic(w1, "images/planeta_rosa.xpm", Mskplnt); //pic do planeta
-/*
-    Paux1 = NewPic(w1, WW, WH);
-    Paux2 = NewPic(w1, WW, WH);*/
+    /* Paux1 = NewPic(w1, WW, WH);
+       Paux2 = NewPic(w1, WW, WH);*/
     Pf = NewPic(w1, WW, WH);
 
-    /*input para criação do Planeta: massa, tempo total e raio*/
+    /* input para criação do Planeta: massa, tempo total e raio */
     for(i = 0; i < 3; i++) {
         if(!scanf("%lf", &DadosP[i])){
             printf("A leitura dos dados do planeta falhou!");
@@ -614,18 +616,17 @@ int main(int argc, char*argv[]){
     
     PrepareMask(w1,Pbkg,Mskplnt);
 
-    PutPic(Pbkg, Pplnt,  0, 0,WW,WH,-WW/10,-WH/10);
+    PutPic(Pbkg, Pplnt, 0, 0, WW, WH, -WW/10, -WH/10);
 
 
-    /*input para criação das Naves*/
+    /* input para criação das Naves */
     for(i = 0; i < 2; i++) {
         DadosN[i] = malloc(sizeof(double)*5); /* Massa, pos_x, pos_y, vel_x, vel_y */
         Nomes[i]  = malloc(sizeof(char)*20);  /* Nome das naves */
-        if(!scanf("%s", Nomes[i])){
+        if(!scanf("%s", Nomes[i])) {
             printf("A leitura dos nomes das naves falhou!");
             return 1;
         }
-
 
         for(j = 0; j < 5; j++){
             if(!scanf("%lf", &DadosN[i][j])){
@@ -640,16 +641,18 @@ int main(int argc, char*argv[]){
     DefineBoundaries(Ns,bounds);
 
     /*input para criação dos Projéteis*/
+    /* número de projéteis */
     if(!scanf("%d", &nb)){
         printf("A leitura do numero de projeteis falhou");
         return 1;
-    }  /* número de projéteis */
+    }  
+
+    /* tempo de simulação dos projéteis */
     if(!scanf("%lf", &tb)){
         printf("A leitura do tempo de simulação dos projéteis falhou");
         return 1;
     }
-     /* tempo de simulação dos projéteis */
-
+   
     DadosB = malloc(sizeof(double*)*nb);
     for(i = 0; i < nb ; i++){
         DadosB[i] = malloc(sizeof(double)*5);
@@ -663,8 +666,8 @@ int main(int argc, char*argv[]){
 
     Bs = CriaBullets(DadosB, nb,w1);
 
-    for(i=0;i<nb;i++){
-        Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+    for(i = 0;i < nb; i++){
+        Bs[i]->c = CheckLimits(Bs[i]->c,bounds);
     }
 
     printf("Simulação prestes a ser iniciada...\n");
@@ -676,10 +679,10 @@ int main(int argc, char*argv[]){
     printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
     printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
 
-    /*simulação do movimento*/
+    /* simulação do movimento */
     Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pf);
 
-    /*desalocando os vetores*/
+    /* desalocando os vetores */
     for(i = 0; i < 2; i++){
         freeNave(Ns[i]);
         free(DadosN[i]);
