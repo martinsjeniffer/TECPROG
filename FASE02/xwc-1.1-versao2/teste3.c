@@ -2,15 +2,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <math.h>
+#include <string.h>
 #include <dirent.h>
 #include "xwc.h"
 
-#define G 6.673
+#define G 6.673e-11
 #define WW 1500
 #define WH 800
 
 #define NumIma 4 //numero de imagens para cada lado rotacao
-#define erro 0.000001
 
 
 typedef struct bullet *Bullet; /* struct do projetil */
@@ -22,22 +22,24 @@ typedef struct planet *Planet; /* struct do Planeta */
 typedef struct sprite *Sprite;    /* struct do sprite */
 
 struct sprite {
-  PIC P[4*NumIma+1];
-  PIC Aux[4*NumIma+1];
-  MASK Msk[4*NumIma+1];
+  PIC *P;
+  PIC *Aux;
+  MASK *Msk;
 };
 
 struct bullet{
     double m;
     double *c,*v,*a;
-    int *o; //orientacao
+    int o;
+    struct sprite* spt;
 };
 
 struct nave{
     char* nome;
     double m;
     double *c,*v,*a;
-    int *o; //orientacao
+    int o;
+    struct sprite* spt;
 };
 
 struct planet{
@@ -60,67 +62,74 @@ void FreeBullet(Bullet B){
     free(B);
 }
 
-Sprite CriaSprite(char nome[50], int n, WINDOW* w1){
-      /*
-      nome é nome da pasta onde está as imagens
-      n é numero de imagens na pasta
-      */
-      int i=0; //contador
-      char local[] = "images/";
-      Sprite S = malloc(sizeof(struct sprite));
-      struct dirent *de;  // Pointer for directory entry
-      /*Preenchendo vetor de PIC e MASK*/
-      DIR *dr = opendir(strcat(local, nome));
-
-      if (dr == NULL)  // opendir returns NULL if couldn't open directory
-          printf("Could not open image directory\n" );
-      //vai ler os arquivos
-      while (((de = readdir(dr)) != NULL) && i<n) {
-          S->Msk[i] = NewMask(w1,100,100);
-          S->P[i] = ReadPic(w1, de->d_name, S->Msk[i]);
-          S->Aux[i] = NewPic(w1, WW, WH);
-          PrepareMask(w1, S->P[i], S->Msk[i]);
-          PrepareMask(w1, S->Aux[i], S->Msk[i]);
-          i++;
-      }
-      closedir(dr);
-      return S;
+Sprite CriaSprite(int norb, WINDOW* w1){
+    Sprite S = malloc(sizeof(struct sprite));
+    int i;
+    char str[50],strint[10],strnave[2];
+    S->P=malloc(4*NumIma*(sizeof(PIC)));
+    S->Aux=malloc(4*NumIma*(sizeof(PIC)));
+    S->Msk=malloc(4*NumIma*(sizeof(MASK)));
+    if(norb==0){
+        for(i=0;i<4*NumIma;i++){
+            S->Msk[i] = NewMask(w1,WW,WH);
+            strcpy(str,"images/bullet/tiro");
+            sprintf(strint,"%d",i);
+            strcat(str,strint);
+            strcat(str,".xpm");
+            S->P[i] = ReadPic(w1, str, S->Msk[i]);
+            S->Aux[i] = NewPic(w1, WW, WH);
+            PrepareMask(w1, S->Aux[i], S->Msk[i]);
+        }
+        return S;
+    }
+    for(i=0;i<4*NumIma;i++){
+        S->Msk[i] = NewMask(w1,WW,WH);
+        strcpy(str,"images/nave/nave");
+        sprintf(strnave,"%d",norb);
+        sprintf(strint,"%d",i);
+        strcat(str,strnave);
+        strcat(str,"-");
+        strcat(str,strint);
+        strcat(str,".xpm");
+        S->P[i] = ReadPic(w1, str, S->Msk[i]);
+        S->Aux[i] = NewPic(w1, WW, WH);
+        PrepareMask(w1, S->Aux[i], S->Msk[i]);
+    }
+    return S;
 }
 
-Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome){
-  Nave N = malloc(sizeof(struct nave));
-  double *c,*v,*a;
-  int *o; //orientacao
+Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome,WINDOW* w1,int numnave){
+    Nave N = malloc(sizeof(struct nave));
+    double *c,*v,*a;
 
-  c = malloc(sizeof(double)*2); /* vetor posição    */
-  v = malloc(sizeof(double)*2); /* vetor velocidade */
-  a = malloc(sizeof(double)*2); /* vetor aceleração */
-  o = malloc(sizeof(int)); //orientação
+    c = malloc(sizeof(double)*2); /* vetor posição    */
+    v = malloc(sizeof(double)*2); /* vetor velocidade */
+    a = malloc(sizeof(double)*2); /* vetor aceleração */
+    N->spt= CriaSprite(numnave,w1);
+    N->nome=nome;
+    N->m=m;
+    N->c=c;
+    N->v=v;
+    N->a=a;
+    N->o=0; //começa apontando para cima
+    N->c[0]=x;
+    N->c[1]=y;
 
-  N->nome=nome;
-  N->m=m;
-  N->c=c;
-  N->v=v;
-  N->a=a;
-  N->o=0; //começa apontando para cima
-  N->c[0]=x;
-  N->c[1]=y;
+    N->v[0]=vx;
+    N->v[1]=vy;
 
-  N->v[0]=vx;
-  N->v[1]=vy;
+    N->a[0]=0;
+    N->a[1]=0;
 
-  N->a[0]=0;
-  N->a[1]=0;
-
-  return N;
+    return N;
 }
 
 /*Criação de apenas 2 naves porém pode ser facilmente generalizada para n naves*/
-Nave* CriaNaves(double**naves, char**nomes){
+Nave* CriaNaves(double**naves, char**nomes,WINDOW* w1){
     int i = 0;
     Nave* NaveList = malloc(2*sizeof(Nave));
     for(i = 0; i < 2; i++){
-        NaveList[i] = CriaNave(naves[i][0],naves[i][1],naves[i][2],naves[i][3],naves[i][4],nomes[i]);
+        NaveList[i] = CriaNave(naves[i][0],naves[i][1],naves[i][2],naves[i][3],naves[i][4],nomes[i],w1,i+1);
     }
     return NaveList;
 }
@@ -133,7 +142,7 @@ Planet CriaPlaneta(double r,double m,double t){
     return P;
 }
 
-Bullet CriaBullet(double m,double x, double y,double vx,double vy){
+Bullet CriaBullet(double m,double x, double y,double vx,double vy,WINDOW* w1){
     Bullet B = malloc(sizeof(struct nave));
     double *c,*v,*a;
     int i=0; //contador
@@ -141,11 +150,12 @@ Bullet CriaBullet(double m,double x, double y,double vx,double vy){
     c = malloc(sizeof(double)*2); /* vetor posição    */
     v = malloc(sizeof(double)*2); /* vetor velocidade */
     a = malloc(sizeof(double)*2); /* vetor aceleração */
-
+    B->spt= CriaSprite(0,w1);
     B->m=m;
     B->c=c;
     B->v=v;
     B->a=a;
+    B->o=0;
 
     B->c[0]=x;
     B->c[1]=y;
@@ -168,11 +178,11 @@ Bullet CriaBullet(double m,double x, double y,double vx,double vy){
     FreePic(i)
 }*/
 /* Criação dos projéteis fornecidos na entrada padrão */
-Bullet* CriaBullets(double**bullets, int nb){
+Bullet* CriaBullets(double**bullets, int nb,WINDOW* w1){
     int i = 0;
     Bullet* BulletList = malloc(nb*sizeof(Bullet));
     for(i = 0; i < nb; i++){
-        BulletList[i] = CriaBullet(bullets[i][0], bullets[i][1], bullets[i][2], bullets[i][3], bullets[i][4]);
+        BulletList[i] = CriaBullet(bullets[i][0], bullets[i][1], bullets[i][2], bullets[i][3], bullets[i][4],w1);
     }
 
     return BulletList;
@@ -300,6 +310,9 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
         Bs[i]->a[1] = 0;
     }
 
+    Ns[0]->o = Orientacao(Ns[0]->a);
+    Ns[1]->o = Orientacao(Ns[1]->a);
+
     if(t < tb){ /* enquanto o tempo de simulação for menor que o tempo limite dos projéteis */
         for(i = 0; i < nb; i++){
             /* Cálculo da aceleração no i+1-ésimo projétil */
@@ -328,8 +341,6 @@ void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double 
             Bs[i]->a = Add(Bs[i]->a, Multk(gpb,(double)(1/Bs[i]->m)));
 
             /* Atualiza orientacao das naves e Projéteis */
-            Ns[0]->o = Orientacao(Ns[0]->a);
-            Ns[1]->o = Orientacao(Ns[1]->a);
             Bs[i]->o = Orientacao(Bs[i]->a);
 
             /* Atualização da velocidade e posição do i+1-ésimo projétil */
@@ -382,7 +393,7 @@ double min(double x, double y){
 }
 
 //escolhe qual imagem do vetor tem a rotação mais apropriada e retorna sua posição no vetor
-int Orientacao(double a[2])
+int Orientacao(double *a)
 {
   /*
   Vetor de imagens com a seguinte organização (de 0 a 2n angulos a direita e 2n a 4n angulos a esquerda):
@@ -392,20 +403,14 @@ int Orientacao(double a[2])
   */
   double segm;
   double alpha; //angulo entre vetor a e (0,1)
-  int i=0; //contador
+  int r;
 
-  alpha = acos(a[1]/(sqrt(a[0]*a[0]+a[1]*a[1]))); //angulo entre vetor a e (0,1)
-  segm = M_PI/(4*NumIma);
+  alpha = atan((double)(a[1]/a[0])); //angulo entre vetor a e (0,1)
+  segm = 2*M_PI/(4*NumIma);
 
   //0<=alpha<=PI, escolhe 0=<i<=NumIma que é mais prox de alpha, i é imagem i*PI/2*NumIma
-  while (alpha<=(2*i+1)*segm && alpha >=(2*i-1)*segm && i<=4*NumIma) i++;
-
-  if (a[0]<0) { // esquerda
-    return 4*NumIma-i;
-  }
-  else { //direita
-    return i;
-  }
+  r=alpha>0 ? alpha/segm : (alpha+2*M_PI)/segm;
+  return r;
 }
 
 void PrepareMask(WINDOW* w1, PIC P, MASK Msk){
@@ -439,7 +444,7 @@ PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg, PIC P,MASK Msk,int i,int j){
     return Paux;
 }
 
-void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb, Sprite SpN, Sprite SpB){
+void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb){
     /* recebe
     window w1
     pic transitorio para sobrepor todos os objetos Pf
@@ -467,20 +472,18 @@ void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg, Nave* Ns,double bounds[],Bullet* B
 
     int i;
 
-    Pf=DrawShip(w1,SpN->Aux[Ns[1]->o],Pbkg,SpN->P[Ns[1]->o],SpN->Msk[Ns[1]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+    Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
     (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]));
 
-    Pf=DrawShip(w1,SpN->Aux[Ns[1]->o],Pf,SpN->P[Ns[0]->o],SpN->Msk[Ns[0]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+    Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
     (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]));
     if(t<tb){
         for(i=0;i<nb;i++){
-            Pf=DrawShip(w1,SpB->Aux[Bs[i]->o],Pf,SpB->P[Bs[i]->o],SpB->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+            Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
             (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]));
         }
     }
     PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-	  usleep(20000);
-
 }
 
 void DefineBoundaries(Nave* Ns,double bounds[]){
@@ -516,7 +519,7 @@ int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
     return bo;
 }
 
-void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[]){
+void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg, PIC Pf){
     /* recebe
     Vetor com projeteis Bs
     vetor com naves Ns
@@ -536,44 +539,12 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     double t=0;
     int i, bo=1;
     printf("\nSimulação Iniciada!\n");
-    PIC Pf,                               /*Pic final utilizado para sobrepor os objetos 1 a 1*/
-        Pplnt,                            /*pic do planeta*/
-        Pbkg,                             /*pic do cenario*/
-        Paux2;
-      //  *Pproj=malloc(nb*sizeof(PIC)),    /*vetor de pics dos projeteis*/
-      //  *Paux=malloc(nb*sizeof(PIC));     /*vetor de pics auxiliares dos projeteis*/
-    MASK
-        Mskplnt;                          /*mascara do planeta*/
-      //  *MskProj=malloc(nb*sizeof(MASK)); /*mascara dos projeteis*/
-    WINDOW *w1;
-    Sprite SpN, SpB;
-
-    w1 = InitGraph(WW,WH, "Arquivos");
-
-    SpN = CriaSprite("nave",4*NumIma+1,w1);
-    SpB = CriaSprite("bullet",4*NumIma+1,w1);
-
-    /*criação das mascaras para tornam o fundo dos objetos transparente*/
-    Mskplnt = NewMask(w1,400,400);
-
-    Pbkg = ReadPic(w1, "images/background.xpm", NULL); //pic do background
-    Pplnt = ReadPic(w1, "images/planeta_rosa.xpm", Mskplnt); //pic do planeta
-/*
-    Paux1 = NewPic(w1, WW, WH);
-    Paux2 = NewPic(w1, WW, WH);*/
-    Pf = NewPic(w1, WW, WH);
-
-    PrepareMask(w1,Pbkg,Mskplnt);
-
-    PutPic(Pbkg, Pplnt,  0, 0, 400, 400, -200, -200);
-    PutPic(Paux2, Pbkg,  0, 0, WW, WH,0, 0);
+    
 
   //  PrepareMask(w1,Paux1,Msk1);
 /*
     PrepareMask(w1,Paux2,Msk2);
     PrepareMask(w1,Paux1,Msk1);*/
-
-
     for(t = 0; t < tf; t += dt){
 
         bo=ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /*impressão dos dados*/
@@ -587,37 +558,13 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
             Ns[i]->c=CheckLimits(Ns[i]->c,bounds);
         }
 
-/*
-        PrepareMask(w1,Paux2,Mrt);
-        PrepareMask(w1,Paux2,Mrt2);*/
 
-        DrawWindow(w1,Pf,Pbkg,Ns,bounds,Bs,nb,t,tb,SpN,SpB);     /*desenha objetos*/
-
-        usleep(20000);                                          /*intervalo entre frames*/
-    }
+        DrawWindow(w1,Pf,Pbkg,Ns,bounds,Bs,nb,t,tb);     /*desenha objetos*/
+        usleep(20000);
+                                                /*intervalo entre frames*/
+    }  
     getchar();
     CloseGraph();
-    FreePic(Pf);
-    /*for (i=0; i<4*NumIma; i++) {
-      FreePic(P1[i]);
-      FreePic(P2[i]);
-      FreePic(Mrt[i]);
-      FreePic(Mrt2[i]);
-    }
-    FreePic(Paux1);
-    FreePic(Paux2);*/
-    FreePic(Pplnt);
-    FreePic(Pbkg);
-  //  FreePic(Msk2);
-    FreePic(Mskplnt);
-    /*for(i=0;i<nb;i++){
-        FreePic(Pproj[i]);
-        FreePic(Paux[i]);
-        FreePic(MskProj[i]);
-    }*/
-    /*free(Pproj);
-    free(Paux);
-    free(MskProj);*/
     WDestroy(w1);
 
     printf("Simulação Finalizada!\n");
@@ -633,7 +580,27 @@ int main(int argc, char*argv[]){
     Planet P;
     Bullet* Bs;
   	WINDOW *w1;                           /*janela a ser utilizada*/
+    PIC Pf,                               /*Pic final utilizado para sobrepor os objetos 1 a 1*/
+        Pplnt,                            /*pic do planeta*/
+        Pbkg,                             /*pic do cenario*/
+        Paux2;
+      //  *Pproj=malloc(nb*sizeof(PIC)),    /*vetor de pics dos projeteis*/
+      //  *Paux=malloc(nb*sizeof(PIC));     /*vetor de pics auxiliares dos projeteis*/
+    MASK
+        Mskplnt;                          /*mascara do planeta*/
+      //  *MskProj=malloc(nb*sizeof(MASK)); /*mascara dos projeteis*/
 
+
+    w1 = InitGraph(WW,WH, "Arquivos");
+        /*criação das mascaras para tornam o fundo dos objetos transparente*/
+    Mskplnt = NewMask(w1,WW,WH);
+
+    Pbkg = ReadPic(w1, "images/background.xpm", NULL); //pic do background
+    Pplnt = ReadPic(w1, "images/planeta_rosa.xpm", Mskplnt); //pic do planeta
+/*
+    Paux1 = NewPic(w1, WW, WH);
+    Paux2 = NewPic(w1, WW, WH);*/
+    Pf = NewPic(w1, WW, WH);
 
     /*input para criação do Planeta: massa, tempo total e raio*/
     for(i = 0; i < 3; i++) {
@@ -644,6 +611,10 @@ int main(int argc, char*argv[]){
     }
 
     P = CriaPlaneta(DadosP[0], DadosP[1], DadosP[2]);
+    
+    PrepareMask(w1,Pbkg,Mskplnt);
+
+    PutPic(Pbkg, Pplnt,  0, 0,WW,WH,-WW/10,-WH/10);
 
 
     /*input para criação das Naves*/
@@ -664,7 +635,7 @@ int main(int argc, char*argv[]){
         }
     }
 
-    Ns = CriaNaves(DadosN, Nomes);
+    Ns = CriaNaves(DadosN, Nomes,w1);
 
     DefineBoundaries(Ns,bounds);
 
@@ -690,7 +661,7 @@ int main(int argc, char*argv[]){
         }
     }
 
-    Bs = CriaBullets(DadosB, nb);
+    Bs = CriaBullets(DadosB, nb,w1);
 
     for(i=0;i<nb;i++){
         Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
@@ -706,7 +677,7 @@ int main(int argc, char*argv[]){
     printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
 
     /*simulação do movimento*/
-    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds);
+    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pf);
 
     /*desalocando os vetores*/
     for(i = 0; i < 2; i++){
