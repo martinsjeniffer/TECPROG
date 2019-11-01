@@ -1,0 +1,6 @@
+Anotações
+
+a[0]=a em x
+a[1]=a em y
+
+voltar no free da nave e bullet
