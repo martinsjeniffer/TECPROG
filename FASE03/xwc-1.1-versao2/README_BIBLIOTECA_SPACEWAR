@@ -1,0 +1,7 @@
+README_BIBLIOTECA_SPACEWAR
+
+Para atualizar a biblioteca:
+gcc -o spacewar.o -c spacewar.c
+
+Para usar
+gcc teste.c spacewar.o

@@ -3,6 +3,7 @@
 #include "xwc.h"
 #include <math.h>
 #include <dirent.h>
+#include "spacewar.h"
 
 #define NumIma 4 //numero de imagens para cada lado rotacao
 #define erro 0.0001

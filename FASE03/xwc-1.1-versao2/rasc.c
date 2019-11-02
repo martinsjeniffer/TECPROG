@@ -28,6 +28,7 @@ int main (){
     if (v=Valid(c,s))
       printf("%d\n", v);
     putchar(c);
+    puts("esparando");
   }
   /* use system call to set terminal behaviour to more normal behaviour*/
   system ("/bin/stty cooked");

@@ -1,0 +1,18 @@
+README_EP
+
+Integrantes:
+Giulia
+Jennifer
+Vitor
+
+Sobre o jogo:
+
+FASE3:
+-Nessa fase ainda não tínhamos uma biblioteca com as funções e o codigo passou
+de 900 linhas, resolvi fazê-la. Entretanto me deparei com outro problema: não
+conseguia anexar a biblioteca xwc.h nessa nova biblioteca, a solução que encon-
+trei foi retirar do código mais básico qualquer mensão a tal biblioteca, assim,
+a solução trouxe um novo problema: rever todo o código e fazer a conexão entre
+as bibliotecas no código do jogo em si
+  -Vale dizer que apesar de eu não estar conseguindo colocar xwc.h no spacewar.h,
+  consegui colocar no makefile do xwc o spacewar.h

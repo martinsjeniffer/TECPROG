@@ -107,10 +107,10 @@ teste_OBJECTS = $(am_teste_OBJECTS)
 teste_DEPENDENCIES =
 am_teste2_OBJECTS = teste2.$(OBJEXT)
 teste2_OBJECTS = $(am_teste2_OBJECTS)
-teste2_DEPENDENCIES = xwc.o
+teste2_DEPENDENCIES = xwc.o spacewar.o
 am_teste3_OBJECTS = teste3.$(OBJEXT)
 teste3_OBJECTS = $(am_teste3_OBJECTS)
-teste3_DEPENDENCIES = xwc.o
+teste3_DEPENDENCIES = xwc.o spacewar.o
 AM_V_P = $(am__v_P_$(V))
 am__v_P_ = $(am__v_P_$(AM_DEFAULT_VERBOSITY))
 am__v_P_0 = false
@@ -280,9 +280,9 @@ top_srcdir = .
 teste_SOURCES = teste.c xwc.c xwc.h
 teste_LDADD = $(X_LIBS) $(X_EXTRA_LIBS)
 teste2_SOURCES = teste2.c 
-teste2_LDADD = xwc.o
-teste3_SOURCES = teste3.c samp.xpm mascara.xpm
-teste3_LDADD = xwc.o
+teste2_LDADD = xwc.o spacewar.o
+teste3_SOURCES = teste3.c 
+teste3_LDADD = xwc.o spacewar.o
 all: config.h
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 

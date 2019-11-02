@@ -1,4 +1,5 @@
-teste3.o: teste3.c /usr/include/stdc-predef.h /usr/include/stdio.h \
+teste3.o: teste3.c /usr/include/stdc-predef.h spacewar.h \
+ /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/libc-header-start.h \
  /usr/include/features.h /usr/include/x86_64-linux-gnu/sys/cdefs.h \
  /usr/include/x86_64-linux-gnu/bits/wordsize.h \
@@ -66,7 +67,9 @@ teste3.o: teste3.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/x86_64-linux-gnu/bits/types/__locale_t.h \
  /usr/include/strings.h \
  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
- /usr/include/x86_64-linux-gnu/bits/string_fortified.h xwc.h \
+ /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+ /usr/include/termios.h /usr/include/x86_64-linux-gnu/bits/termios.h \
+ /usr/include/x86_64-linux-gnu/sys/ttydefaults.h xwc.h \
  /usr/include/X11/Xlib.h /usr/include/X11/X.h \
  /usr/include/X11/Xfuncproto.h /usr/include/X11/Xosdefs.h \
  /usr/include/X11/Xutil.h /usr/include/X11/keysym.h \
@@ -75,6 +78,8 @@ teste3.o: teste3.c /usr/include/stdc-predef.h /usr/include/stdio.h \
  /usr/include/X11/xpm.h
 
 /usr/include/stdc-predef.h:
+
+spacewar.h:
 
 /usr/include/stdio.h:
 
@@ -225,6 +230,12 @@ teste3.o: teste3.c /usr/include/stdc-predef.h /usr/include/stdio.h \
 /usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
 
 /usr/include/x86_64-linux-gnu/bits/string_fortified.h:
+
+/usr/include/termios.h:
+
+/usr/include/x86_64-linux-gnu/bits/termios.h:
+
+/usr/include/x86_64-linux-gnu/sys/ttydefaults.h:
 
 xwc.h:
 
