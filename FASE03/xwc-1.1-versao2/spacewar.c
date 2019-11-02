@@ -294,6 +294,103 @@ int Orientacao(int o, int n)
     return 0;
   return o;
 }
+//relação atrações
+void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb){
+    /* recebe
+    vetor com projeteis Bs
+    vetor com naves Ns
+    planeta P
+    numero de projeteis nb
+    timestep dt
+    tempo atual de simulação t
+    tempo maximo dos projeteis tb
+
+    atualiza os valores das posições das naves e projeteis
+    */
+    int i, j;
+    double* gpn1 = gravityPN(P, Ns[0]), *gpn2=gravityPN(P, Ns[1]); /* cálculo da gravidade entre o planeta e as naves 1 e 2 */
+    double* gnn  = gravityNN(Ns[0], Ns[1]); /* cálculo da gravidade entre as duas naves */
+    double* gbn1,*gbn2,*gpb;                /* cálculo da gravidade para os projéteis */
+    double* aj = malloc(sizeof(double)*2);  /* aceleração da jogada */
+
+    for(i = 0; i < 2; i++){
+        Ns[i]->a[0] = 0;
+        Ns[i]->a[1] = 0;
+    }
+
+    Ns[0]->a = Add(Ns[0]->a, Multk(gnn, (double)(-1/Ns[0]->m)));
+
+    gnn = Multk(gnn, (double)(-Ns[0]->m));
+
+    Ns[1]->a = Add(Ns[1]->a, Multk(gnn,(double)(1/Ns[1]->m)));
+    Ns[0]->a = Add(Ns[0]->a, Multk(gpn1,(double)(1/Ns[0]->m)));
+    Ns[1]->a = Add(Ns[1]->a, Multk(gpn2,(double)(1/Ns[1]->m)));
+
+    /*adicionando a jogada
+    Ns[0]->a = Add(Ns[0]->a, aj0);
+    Ns[1]->a = Add(Ns[1]->a, aj1);
+
+    /* liberação da memória alocada */
+    free(gpn1);
+    free(gpn2);
+    free(gnn);
+    free(aj);
+
+    for(i = 0; i < nb; i++){
+        Bs[i]->a[0] = 0;
+        Bs[i]->a[1] = 0;
+    }
+
+    if(t < tb){ /* enquanto o tempo de simulação for menor que o tempo limite dos projéteis */
+        for(i = 0; i < nb; i++){
+            /* Cálculo da aceleração no i+1-ésimo projétil */
+            for(j = i + 1; j < nb; j++){
+                gbn1 = gravityBB(Bs[j], Bs[i]);
+                Bs[i]->a = Add(Bs[i]->a, Multk(gbn1, (double)(1/Bs[i]->m)));
+
+                gbn1 = Multk(gbn1, (double)(Bs[i]->m));
+                Bs[j]->a = Add(Bs[j]->a, Multk(gbn1, (double)(-1/Bs[j]->m)));
+                free(gbn1);
+            }
+
+            /* Projétil i+1 com Naves e Planeta */
+            gbn1 = gravityBN(Bs[i], Ns[0]);
+            gbn2 = gravityBN(Bs[i], Ns[1]);
+            gpb = gravityPB(P, Bs[i]);
+
+            /* Atualiza aceleração do projétil e das naves */
+            Ns[0]->a = Add(Ns[0]->a, Multk(gbn1,(double)(1/Ns[0]->m)));
+            Multk(gbn1,Ns[0]->m);
+            Ns[1]->a = Add(Ns[1]->a, Multk(gbn2,(double)(1/Ns[1]->m)));
+            Multk(gbn2,Ns[0]->m);
+
+            Bs[i]->a = Add(Bs[i]->a, Multk(gbn1,(double)(-1/Bs[i]->m)));
+            Bs[i]->a = Add(Bs[i]->a, Multk(gbn2,(double)(-1/Bs[i]->m)));
+            Bs[i]->a = Add(Bs[i]->a, Multk(gpb,(double)(1/Bs[i]->m)));
+
+            /* Atualiza orientacao das naves e Projéteis */
+            //Bs[i]->o = Orientacao(Bs[i]->a);
+
+            /* Atualização da velocidade e posição do i+1-ésimo projétil */
+
+            Bs[i]->v = Add(Bs[i]->v, Multk(Bs[i]->a,dt));
+            Bs[i]->c = Add(Bs[i]->c, Multk(Bs[i]->v,dt));
+            Bs[i]->v = Multk(Bs[i]->v,(double)(1/dt));
+
+            free(gbn1);
+            free(gbn2);
+            free(gpb);
+        }
+    }
+
+    /* atualiza velocidade e posição das naves */
+    Ns[0]->v = Add(Ns[0]->v,Multk(Ns[0]->a,dt));
+    Ns[1]->v = Add(Ns[1]->v,Multk(Ns[1]->a,dt));
+    Ns[0]->c = Add(Ns[0]->c,Multk(Ns[0]->v,dt));
+    Ns[1]->c = Add(Ns[1]->c,Multk(Ns[1]->v,dt));
+    Ns[0]->v = Multk(Ns[0]->v,(double)1/dt);
+    Ns[1]->v = Multk(Ns[1]->v,(double)1/dt);
+}
 
 //recebe duas posições e calcula distancia entre elas
 double Dist(double *d1, double *d2)

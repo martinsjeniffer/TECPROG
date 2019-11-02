@@ -132,6 +132,9 @@ double min(double x, double y);
 //só quem controla é o jogador
 int Orientacao(int o, int n);
 
+//relação atrações
+void Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb);
+
 double Dist(double *d1, double *d2);
 
 int Colisao(double *d1, double *d2, double r1, double r2);

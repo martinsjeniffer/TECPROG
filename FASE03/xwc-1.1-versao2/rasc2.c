@@ -27,6 +27,7 @@ int main ()
   while (c){
     while (!kbhit()) {
         c=game(c);
+        printf("e?");
     }
     c = getch(); /* consume the character */
     c = game (c);

@@ -63,103 +63,6 @@ double* AplicaForca(double *a, double m, int o, double in)
   f[0]=cos(alpha)*in;
   return Add(a, Multk(f, (double)(1/m)));
 }
-//relação atrações
-int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb){
-    /* recebe
-    vetor com projeteis Bs
-    vetor com naves Ns
-    planeta P
-    numero de projeteis nb
-    timestep dt
-    tempo atual de simulação t
-    tempo maximo dos projeteis tb
-
-    atualiza os valores das posições das naves e projeteis
-    */
-    int i, j;
-    double* gpn1 = gravityPN(P, Ns[0]), *gpn2=gravityPN(P, Ns[1]); /* cálculo da gravidade entre o planeta e as naves 1 e 2 */
-    double* gnn  = gravityNN(Ns[0], Ns[1]); /* cálculo da gravidade entre as duas naves */
-    double* gbn1,*gbn2,*gpb;                /* cálculo da gravidade para os projéteis */
-    double* aj = malloc(sizeof(double)*2);  /* aceleração da jogada */
-
-    for(i = 0; i < 2; i++){
-        Ns[i]->a[0] = 0;
-        Ns[i]->a[1] = 0;
-    }
-
-    Ns[0]->a = Add(Ns[0]->a, Multk(gnn, (double)(-1/Ns[0]->m)));
-
-    gnn = Multk(gnn, (double)(-Ns[0]->m));
-
-    Ns[1]->a = Add(Ns[1]->a, Multk(gnn,(double)(1/Ns[1]->m)));
-    Ns[0]->a = Add(Ns[0]->a, Multk(gpn1,(double)(1/Ns[0]->m)));
-    Ns[1]->a = Add(Ns[1]->a, Multk(gpn2,(double)(1/Ns[1]->m)));
-
-    /*adicionando a jogada
-    Ns[0]->a = Add(Ns[0]->a, aj0);
-    Ns[1]->a = Add(Ns[1]->a, aj1);
-
-    /* liberação da memória alocada */
-    free(gpn1);
-    free(gpn2);
-    free(gnn);
-    free(aj);
-
-    for(i = 0; i < nb; i++){
-        Bs[i]->a[0] = 0;
-        Bs[i]->a[1] = 0;
-    }
-
-    if(t < tb){ /* enquanto o tempo de simulação for menor que o tempo limite dos projéteis */
-        for(i = 0; i < nb; i++){
-            /* Cálculo da aceleração no i+1-ésimo projétil */
-            for(j = i + 1; j < nb; j++){
-                gbn1 = gravityBB(Bs[j], Bs[i]);
-                Bs[i]->a = Add(Bs[i]->a, Multk(gbn1, (double)(1/Bs[i]->m)));
-
-                gbn1 = Multk(gbn1, (double)(Bs[i]->m));
-                Bs[j]->a = Add(Bs[j]->a, Multk(gbn1, (double)(-1/Bs[j]->m)));
-                free(gbn1);
-            }
-
-            /* Projétil i+1 com Naves e Planeta */
-            gbn1 = gravityBN(Bs[i], Ns[0]);
-            gbn2 = gravityBN(Bs[i], Ns[1]);
-            gpb = gravityPB(P, Bs[i]);
-
-            /* Atualiza aceleração do projétil e das naves */
-            Ns[0]->a = Add(Ns[0]->a, Multk(gbn1,(double)(1/Ns[0]->m)));
-            Multk(gbn1,Ns[0]->m);
-            Ns[1]->a = Add(Ns[1]->a, Multk(gbn2,(double)(1/Ns[1]->m)));
-            Multk(gbn2,Ns[0]->m);
-
-            Bs[i]->a = Add(Bs[i]->a, Multk(gbn1,(double)(-1/Bs[i]->m)));
-            Bs[i]->a = Add(Bs[i]->a, Multk(gbn2,(double)(-1/Bs[i]->m)));
-            Bs[i]->a = Add(Bs[i]->a, Multk(gpb,(double)(1/Bs[i]->m)));
-
-            /* Atualiza orientacao das naves e Projéteis */
-            //Bs[i]->o = Orientacao(Bs[i]->a);
-
-            /* Atualização da velocidade e posição do i+1-ésimo projétil */
-
-            Bs[i]->v = Add(Bs[i]->v, Multk(Bs[i]->a,dt));
-            Bs[i]->c = Add(Bs[i]->c, Multk(Bs[i]->v,dt));
-            Bs[i]->v = Multk(Bs[i]->v,(double)(1/dt));
-
-            free(gbn1);
-            free(gbn2);
-            free(gpb);
-        }
-    }
-
-    /* atualiza velocidade e posição das naves */
-    Ns[0]->v = Add(Ns[0]->v,Multk(Ns[0]->a,dt));
-    Ns[1]->v = Add(Ns[1]->v,Multk(Ns[1]->a,dt));
-    Ns[0]->c = Add(Ns[0]->c,Multk(Ns[0]->v,dt));
-    Ns[1]->c = Add(Ns[1]->c,Multk(Ns[1]->v,dt));
-    Ns[0]->v = Multk(Ns[0]->v,(double)1/dt);
-    Ns[1]->v = Multk(Ns[1]->v,(double)1/dt);
-}
 
 void PrepareMask(WINDOW* w1, PIC P, MASK Msk){
    /*   recebe
@@ -243,7 +146,7 @@ void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg, Nave* Ns,double bounds[],Bullet* B
     PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
 }
 
-void Game(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg, PIC Pf, Sprite Sn1, Sprite Sn2){
+int Game(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg, PIC Pf, Sprite Sn1, Sprite Sn2){
     /*  recebe
      *      - Vetor com projeteis Bs
      *      - vetor com naves Ns
@@ -261,13 +164,13 @@ void Game(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double t
     puts("Este programa só funciona com a biblioteca Xpm!");
     #else
     double t  = 0;
-    int i, bo = 1;
-    int c = 0; // tecla
-    printf("\nSimulação Iniciada!\n");
+    int i;//, bo = 1;
+//    int c = 0; // tecla
+    //printf("\nSimulação Iniciada!\n");
 
-    for(t = 0; t < tf; t += dt){
+    //for(t = 0; t < tf; t += dt){
 
-        bo = ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /* impressão dos dados*/
+    //    bo = ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /* impressão dos dados*/
 
         Update(Bs, Ns, P, nb, dt, t, tb);                         /* atualiza valor das posições dos objetos*/
 
@@ -283,56 +186,42 @@ void Game(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double t
         DrawWindow(w1,Pf,Pbkg,Ns,bounds,Bs,nb,t,tb, Sn1, Sn2);     /*desenha objetos*/
         usleep(20000);
                                                         /*intervalo entre frames*/
-    }
+  //  }
+    return 0;
 
-    getchar();
-    CloseGraph();
-    WDestroy(w1);
-
-    printf("Simulação Finalizada!\n");
     #endif
 }
 
 //cria vetor aceleração da jogada
-double* Jogada(double* f, int v)
+void Jogada(int v, Nave* Ns, int i)
 {
   /*
-  recebe o que foi a jogada (v)
-  devolve vetor força sendo f[0]=horizontal
+  recebe o que foi a jogada (v), a lista de naves e qual nave se trata
   */
   switch (v) {
-    case 1: // cima
-      f[0]=0;
-      f[1]=1*Fator;
+    case 1: // gira para esquerda
+      Ns[i]->o=Orientacao(Ns[i]->o,-1);
     break;
 
-    case 2: // esquerda
-      f[0]=-1*Fator;
-      f[1]=0;
+    case 2: // gira para direita
+      Ns[i]->o=Orientacao(Ns[i]->o,1);
     break;
 
-    case 3: // baixo
-      f[0]=0;
-      f[1]=-1*Fator;
+    case 3: // motor
+      Ns[i]->a=AplicaForca( Ns[i]->a, Ns[i]->m, Ns[i]->o, Fator);
     break;
 
-    case 4: // direita
-      f[0]=1*Fator;
-      f[1]=0;
-    break;
-
-    case 5: // tiro
-      f[0]=0;
-      f[1]=0;
+    case 4: // tiro
       puts("BANG!");
     break;
   }
-  return f;
+
 }
 
 int main(int argc, char*argv[]){
     int i,j,nb;
     int c; //entrada
+    int v;
     int game_over=0;
     double dt = atof(argv[1]) /* timestep dado por linha de comando */,
            tb, bounds[4]      /* limites do mapa a serem definidos  */;
@@ -435,14 +324,23 @@ int main(int argc, char*argv[]){
     printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
     printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
 
-    //set_conio_terminal_mode();
-  /*
+    set_conio_terminal_mode();
+
+    //game
     while (!game_over){
       while (!kbhit()) {
         //roda enquanto não recebe nada*/
-        Game(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pf, Sn1, Sn2);
-
+        game_over = Game(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pf, Sn1, Sn2);
+      }
       c = getch();
+      if (v=Valid(c, "jlio")) //jogada da nave0
+        Jogada(v, Ns, 0);
+      else if (v=Valid(c, "adwe")) //jogada da nave1
+        Jogada(v, Ns, 1);
+    }
+
+    CloseGraph();
+    WDestroy(w1);
 
 
     /* simulação do movimento */
