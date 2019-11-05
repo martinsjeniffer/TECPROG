@@ -1,0 +1,79 @@
+
+Projeto MAC-0216 Técnicas de Programação 1 - Projeto 3
+
+Alunos:
+Vitor Daisuke Tamae                 NUSP 10705620
+Jeniffer Florinda Martins da Silva  NUSP 10377966
+Giulia Cunha de Nardi               NUSP 10692203
+
+O arquivo no qual o código do projeto está contido é o spacewar.c
+
+A unidade temporal utilizada foi o "segundo" para familiarização das unidades com o SI.
+
+O seguinte comando foi executado para compilação e execução:
+
+./spacewar timestep < inputs/n.txt
+
+onde timestep é um número que fornece o stepsize da simulação e n é um inteiro entre 1 e 8, para ler um dos 8 txts na pasta inputs. Usualmente foi utilizado um step de 0.01.
+
+Os resultados da simulação são impressos na saída padrão, mostrando o tempo, as posições e velocidades das naves e dos projéteis, e uma janela é gerada com as animações das naves, projéteis e planetas.
+
+Nessa implementação, a nave se direciona dependendo do input do teclado.
+
+Os seguintes comandos são possíveis:
+controle - comando
+w - nave 1 acelera para onde aponta
+d - nave 1 gira no sentido horário
+s - nave 1 dispara projétil
+a - nave 1 gira no sentido anti-horário
+uparrow - nave 2 acelera para onde aponta
+rightarrow - nave 2 gira no sentido horário
+downarrow - nave 2 dispara projétil
+leftarrow - nave 2 gira no sentido anti-horário
+
+Cada nave pode disparar apenas um projétil por vez, tendo que esperar que seu último projétil lançado passe do tempo limite, ou atinja a outra nave.
+
+Colisões entre objetos agora são consideradas, havendo um raio de distância minimo para o qual dois corpos podem se aproximar. Para projéteis disparados por naves, seu raio de colisão aumenta por um breve período de tempo no fim de sua vida útil.
+
+As imagens utilizadas estão na pasta images, contendo ambos os xpms dos projéteis na pasta bullet e naves na pasta nave. 
+
+As rotações foram discretizadas em 16 posições distintas.
+
+As dimensões das posições dos objetos definem tanto as fronteiras quanto a escala do mapa. O mapa possui tamanho fixo, enquanto ajusta-se a escala para que ela seja compatível com o tamanho da janela.
+
+
+
+Especificações da biblioteca xpm:
+
+						 ______________________
+
+								 README
+
+						  Marco Dimas Gubitoso
+						 ______________________
+
+
+Table of Contents
+_________________
+
+1 xwc
+
+
+1 xwc
+=====
+
+  `xwc' é uma biblioteca que encapsula chamadas diretas para a `Xlib' e
+  a `Xpm' de modo a simplificar seu uso.
+
+  A maior parte dos argumentos foi trocada por valores de uso mais comum
+  e outras funções se basearam em bibliotecas gráficas mais simples.
+
+  A documentação das funções está em `xwc.h' e existem três programas de
+  testes para ilustrar as funcionalidades:
+
+  * `teste.c' Cria retângulos coloridos e mostra as chamadas mais
+    simples.
+  * `teste2.c' Mostra como fazer uma animação simples.
+  * `teste3.c' Uso da biblioteca `Xpm' para ler e gravar /sprites/.
+	
+** o programa 'teste3.c' foi alterado para receber o programa do EP.
