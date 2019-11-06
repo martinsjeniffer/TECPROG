@@ -22,7 +22,46 @@
 #define BOMBRB 50   //raio do alcance da bomba, ou no caso o projétil que explodirá
 #define BOMINTERVAL 2 //duração do tempo final, onde o disparo se tornará uma bomba
 #define DISPLIM 10 //tempo limite de sobrevivência do disparo
+#define AC 10   // aceleração gerada pelos controles manuais na nave
+#define INITACB 600 //velocidade inicial do projétil lançado
 
+
+/*********************************/
+/*   Imprementação dos Structs   */
+/*********************************/
+
+typedef struct bullet *Bullet; /* struct do projetil */
+
+typedef struct nave *Nave; /* struct da nave */
+
+typedef struct planet *Planet; /* struct do Planeta */
+
+typedef struct sprite *Sprite;    /* struct do sprite, que armazenará a imagem do objeto */
+
+struct bullet{
+    double m;
+    double *c,*v,*a;
+    int o;
+    struct sprite* spt;
+};
+
+struct nave{
+    char* nome;
+    double m;
+    double *c,*v,*a;
+    int o;
+    struct sprite* spt;
+};
+
+struct planet{
+    double r,m,t;
+};
+
+struct sprite {
+  PIC *P;
+  PIC *Aux;
+  MASK *Msk;
+};
 
 // Protótipos das funções da
 // biblioteca.
@@ -57,27 +96,70 @@ double max(double x, double y);
 //retorna o minimo entre x e y
 double min(double x, double y);
 
-//escolhe qual imagem do vetor tem a rotação mais apropriada e retorna sua posição no vetor
-int Orientacao(double *a);
 
-//checa se dois objetos em coordenadas c1 e c2 se colidiram ou não, bomb é um inteiro que indica se o objeto é uma bomba
-//disptime é o tempo limite para o projétil não explodir. Desde tempo até seu fim este estará com um alcance maior de colisão
-int CheckCollision(double* c1, double* c2,int bomb,int disptime);
+/**************************************/
+/*  Definição das fronteiras do mapa  */
+/**************************************/
 
+void DefineBoundaries(Nave* Ns,double bounds[]);
 /*Se a coordenada estiver fora dos limites do mapa, colocar o objeto dentro dos limites*/
 double* CheckLimits(double*c,double bounds[]);
 
 
+/*********************************/
+/*    Funções Construtoras       */
+/*********************************/
+
+void PrepareMask(WINDOW* w1, PIC P, MASK Msk);
+/*cria vetor de struct contendo a picture e a mascara correspondente para cada uma das possiveis orientações*/
+Sprite CriaSprite(int norb, WINDOW* w1);
+Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome,WINDOW* w1,int numnave);
+/*Criação de apenas 2 naves porém pode ser facilmente generalizada para n naves*/
+Nave* CriaNaves(double**naves, char**nomes,WINDOW* w1);
+Planet CriaPlaneta(double r,double m,double t);
+Bullet CriaBullet(double m,double x, double y,double vx,double vy,WINDOW* w1);
+/* Criação dos projéteis fornecidos na entrada padrão */
+Bullet* CriaBullets(double**bullets, int nb,WINDOW* w1);
 
 
-// A função xxx recebe ... e
-// devolve ... tal que ...
-//
-int xxxx (int a, char c, int v[]);
+/**************************************/
+/*      Desenho dos Objetos           */
+/**************************************/
 
-// A função yyyy recebe ... e
-// devolve ... tal que ...
-//
-void yyyy (double a, int b);
+PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg,PIC Pplnt, PIC P,MASK Msk,int i,int j,double bounds[]);
+void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk);
+/*imprime dados no prompt*/
+int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs);
+
+
+/**************************************/
+/*      Forças gravitacionais         */
+/**************************************/
+
+/* Força gravicional entre Planeta e Projétil */
+double* gravityPB(Planet P, Bullet B);
+/* Interação entre o Planeta e Nave */
+double* gravityPN(Planet P, Nave N);
+/* Interação entre as naves */
+double* gravityNN(Nave N1,Nave N2);
+/* Interação entre os Projétil e Nave */
+double* gravityBN(Bullet B, Nave N);
+/* Interação entre Projéteis */
+double* gravityBB(Bullet B1,Bullet B2);
+
+
+
+
+/*********************************/
+/*    Liberação de memória       */
+/*********************************/
+
+/*funções para desalocar a memória no final do programa*/
+void FreeNave(Nave N);
+
+void FreeBullet(Bullet B);
+
+void FreeSprite(Sprite S);
+
 
 #endif

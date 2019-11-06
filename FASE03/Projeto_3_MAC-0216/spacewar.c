@@ -6,291 +6,31 @@
 #include "spwar.h"
 #include "xwc.h"
 
-#define G 6.673e-11 //constante gravitacional
-#define WW 1500 //altura da janela
-#define WH 800  //largura da janela
-#define PI 3.14159265359    //pi
-#define AC 10   // aceleração gerada pelos controles manuais na nave
-#define INITACB 600 //velocidade inicial do projétil lançado
-
-
-/*********************************/
-/*   Imprementação dos Structs   */
-/*********************************/
-
-
-typedef struct bullet *Bullet; /* struct do projetil */
-
-typedef struct nave *Nave; /* struct da nave */
-
-typedef struct planet *Planet; /* struct do Planeta */
-
-typedef struct sprite *Sprite;    /* struct do sprite, que armazenará a imagem do objeto */
-
-
-struct sprite {
-  PIC *P;
-  PIC *Aux;
-  MASK *Msk;
-};
-
-struct bullet{
-    double m;
-    double *c,*v,*a;
-    int o;
-    struct sprite* spt;
-};
-
-struct nave{
-    char* nome;
-    double m;
-    double *c,*v,*a;
-    int o;
-    struct sprite* spt;
-};
-
-struct planet{
-    double r,m,t;
-};
-
-
-/*********************************/
-/*    Liberação de memória       */
-/*********************************/
-
-/*funções para desalocar a memória no final do programa*/
-
-void FreeSprite(Sprite S){
-    int i;
-    for(i=0;i<16;i++){
-        free(S->P[i]);
-        free(S->Aux[i]);
-    }
-    free(S);
-}
-
-void FreeNave(Nave N){
-    free(N->c);
-    free(N->v);
-    free(N->a);
-    free(N->nome);
-    FreeSprite(N->spt);
-    free(N);
-}
-
-void FreeBullet(Bullet B){
-    free(B->c);
-    free(B->v);
-    free(B->a);
-    FreeSprite(B->spt);
-    free(B);
-}
-
-
-
-
-/*********************************/
-/*    Funções Construtoras       */
-/*********************************/
-
-
-void PrepareMask(WINDOW* w1, PIC P, MASK Msk){
-  /* recebe
-    window w1
-    pic auxiliar para aplicar mascara P
-    mascara a ser aplicada Msk
-
-    aplica Msk em P
-  */
-
-  PutPic(w1, P,  0, 0, WW, WH, 0, 0);
-  SetMask(P,Msk);
-}
-
-
-/*cria vetor de struct contendo a picture e a mascara correspondente para cada uma das possiveis orientações*/
-Sprite CriaSprite(int norb, WINDOW* w1){
-    Sprite S = malloc(sizeof(struct sprite));
-    int i;
-    char str[50],strint[10],strnave[2];
-    S->P=malloc(4*NumIma*(sizeof(PIC)));
-    S->Aux=malloc(4*NumIma*(sizeof(PIC)));
-    S->Msk=malloc(4*NumIma*(sizeof(MASK)));
-    if(norb==0){
-        for(i=0;i<4*NumIma;i++){
-            S->Msk[i] = NewMask(w1,WW,WH);
-            strcpy(str,"images/bullet/tiro");
-            sprintf(strint,"%d",i);
-            strcat(str,strint);
-            strcat(str,".xpm");
-            S->P[i] = ReadPic(w1, str, S->Msk[i]);
-            S->Aux[i] = NewPic(w1, WW, WH);
-            PrepareMask(w1, S->Aux[i], S->Msk[i]);
-        }
-        return S;
-    }
-    for(i=0;i<4*NumIma;i++){
-        S->Msk[i] = NewMask(w1,WW,WH);
-        strcpy(str,"images/nave/nave");
-        sprintf(strnave,"%d",norb);
-        sprintf(strint,"%d",i);
-        strcat(str,strnave);
-        strcat(str,"-");
-        strcat(str,strint);
-        strcat(str,".xpm");
-        S->P[i] = ReadPic(w1, str, S->Msk[i]);
-        S->Aux[i] = NewPic(w1, WW, WH);
-        PrepareMask(w1, S->Aux[i], S->Msk[i]);
-    }
-    return S;
-}
-
-Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome,WINDOW* w1,int numnave){
-    Nave N = malloc(sizeof(struct nave));
-    double *c,*v,*a;
-
-    c = malloc(sizeof(double)*2); /* vetor posição    */
-    v = malloc(sizeof(double)*2); /* vetor velocidade */
-    a = malloc(sizeof(double)*2); /* vetor aceleração */
-    N->spt= CriaSprite(numnave,w1); /*vetor de sprite*/
-    N->nome=nome;
-    N->m=m;
-    N->c=c; /*coordenadas*/
-    N->v=v; /*velocidade*/
-    N->a=a; /*aceleração*/
-    N->o=0; //começa apontando para cima
-    N->c[0]=x;
-    N->c[1]=y;
-
-    N->v[0]=vx;
-    N->v[1]=vy;
-
-    N->a[0]=0;
-    N->a[1]=0;
-
-    return N;
-}
-
-/*Criação de apenas 2 naves porém pode ser facilmente generalizada para n naves*/
-Nave* CriaNaves(double**naves, char**nomes,WINDOW* w1){
-    int i = 0;
-    Nave* NaveList = malloc(2*sizeof(Nave));
-    for(i = 0; i < 2; i++){
-        NaveList[i] = CriaNave(naves[i][0],naves[i][1],naves[i][2],naves[i][3],naves[i][4],nomes[i],w1,i+1);
-    }
-    return NaveList;
-}
-
-Planet CriaPlaneta(double r,double m,double t){
-    Planet P = malloc(sizeof(struct planet));
-    P->m=m; /* massa */
-    P->t=t; /* tempo  de simulação*/
-    P->r=r; /* raio  */
-    return P;
-}
-
-Bullet CriaBullet(double m,double x, double y,double vx,double vy,WINDOW* w1){
-    Bullet B = malloc(sizeof(struct bullet));
-    double *c,*v,*a;
-    int i=0; //contador
-    struct dirent *de;  // Pointer for directory entry
-    c = malloc(sizeof(double)*2); /* vetor posição    */
-    v = malloc(sizeof(double)*2); /* vetor velocidade */
-    a = malloc(sizeof(double)*2); /* vetor aceleração */
-    B->spt= CriaSprite(0,w1); //sprite das imagens
-    //identico a nave
-    B->m=m;
-    B->c=c;
-    B->v=v;
-    B->a=a;
-    B->o=0;
-
-    B->c[0]=x;
-    B->c[1]=y;
-
-    B->v[0]=vx;
-    B->v[1]=vy;
-
-    B->a[0]=0;
-    B->a[1]=0;
-
-    B->o=0;
-
-    return B;
-}
-
-
-/* Criação dos projéteis fornecidos na entrada padrão */
-Bullet* CriaBullets(double**bullets, int nb,WINDOW* w1){
-    int i = 0;
-    Bullet* BulletList = malloc((nb+2)*sizeof(Bullet));
-    for(i = 0; i < nb; i++){
-        BulletList[i] = CriaBullet(bullets[i][0], bullets[i][1], bullets[i][2], bullets[i][3], bullets[i][4],w1);
-    }
-    return BulletList;
-}
-
-
-
-
-/**************************************/
-/*      Forças gravitacionais         */
-/**************************************/
-
-
-/* Força gravicional entre Planeta e Projétil */
-double* gravityPB(Planet P, Bullet B){
-    double* g=Copia(B->c);
-    double dist= (double)(-G*P->m*B->m/(pow(AbsSqrd(B->c),3/2)));
-    g=Multk(g,dist);
-    return g;
-}
-
-/* Interação entre o Planeta e Nave */
-double* gravityPN(Planet P, Nave N){
-    double* g = Copia(N->c);
-
-    /*         -G * m * M         */
-    /*      (x**2 + y**2)^3/2    */
-    double dist = (double)(-G* P->m * N->m/(pow(AbsSqrd(N->c),3/2)));
-
-    g = Multk(g, dist);
-    return g;
-}
-
-/* Interação entre as naves */
-double* gravityNN(Nave N1,Nave N2){
-    double* g = Sub(Copia(N2->c),N1->c),
-            dist = (double)(-G*N2->m*N1->m/(pow(AbsSqrd(g),3/2)));
-
-    g = Multk(g,dist);
-    return g;
-}
-
-/* Interação entre os Projétil e Nave */
-double* gravityBN(Bullet B, Nave N){
-    double* g = Sub(Copia(N->c),B->c),
-            dist = (double)(-G*B->m*N->m/(pow(AbsSqrd(g),3/2)));
-
-    g = Multk(g,dist);
-    return g;
-}
-
-/* Interação entre Projéteis */
-double* gravityBB(Bullet B1,Bullet B2){
-    double* g = Sub(Copia(B2->c),B1->c),
-            dist = (double)(-G*B2->m*B1->m/(pow(AbsSqrd(g),3/2)));
-
-    g = Multk(g,dist);
-    return g;
-}
-
 
 /**************************************/
 /*  Colisões, Orientação e Disparos   */
 /**************************************/
 
-//orientação em spwar.h
+//escolhe qual imagem do vetor tem a rotação mais apropriada e retorna sua posição no vetor
+int Orientacao(double *a)
+{
+    /*
+    Vetor de imagens com a seguinte organização (de 0 a 2n angulos a direita e 2n a 4n angulos a esquerda):
+    0... |n  ...  |2n... |3n  .....|4n
+    cima |direita |baixo |esquerda |cima
+    Devolve uma int orientacao
+    */
+    double segm;
+    double alpha; //angulo entre vetor a e (0,1)
+    int r;
+    if(a[0]==0 && a[1]<=0)alpha=0;
+    else if(a[0]==0 && a[1]>0)alpha=PI;
+    else alpha = atan((double)(-a[1]/a[0]));
+    segm = 2*PI/(4*NumIma);
+    r=a[0]>0 ? -(alpha-(double)(PI/2))/segm : -(alpha-(double)(PI/2))/segm+8;
+    return r;
+}
+
 
 //Confere se o teclado foi apertado. Caso positivo, envia a devida orientação para prosseguir.
 int CheckKB(WINDOW *w1){
@@ -311,6 +51,19 @@ int CheckKB(WINDOW *w1){
     }
     return 0;
 }
+
+//checa se dois objetos em coordenadas c1 e c2 se colidiram ou não, bomb é um inteiro que indica se o objeto é uma bomba
+//disptime é o tempo limite para o projétil não explodir. Desde tempo até seu fim este estará com um alcance maior de colisão
+int CheckCollision(double* c1, double* c2,int bomb,int disptime){
+    double* c=Copia(c1);
+    Sub(c,c2);
+    if(AbsSqrd(c)<RB+(bomb==1)*(disptime>DISPLIM-BOMINTERVAL)*BOMBRB){
+        free(c);
+        return 1;
+    }
+    return 0;
+}
+
 
 //aceleração extra na nave, gerada por comando de teclado
 void BoostN(Nave N,double bounds[]){
@@ -386,114 +139,6 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
     default:    //caso contrario, ignorar ação a ser tomada.
         break;
     }
-}
-
-
-
-
-
-/**************************************/
-/*  Definição das fronteiras do mapa  */
-/**************************************/
-
-void DefineBoundaries(Nave* Ns,double bounds[]){
-    /*Os limites são definidos de acordo com as posições das naves*/
-    /*O limite superior, por exemplo, é definido como o máximo entre 0 e o dobro da maior das coordenadas y das naves */
-    /*Analogamente, o mínimo é definido o mínimo entre 0 e o dobro da menor das coordenadas y das naves  */
-    /*O mesmo é feito para os limites direito e esquerdo*/
-    bounds[0]= max(0,2*max(Ns[0]->c[1],Ns[1]->c[1])); /*UpperBound*/
-    bounds[1]= min(0,2*min(Ns[0]->c[1],Ns[1]->c[1])); /*LowerBound*/
-    bounds[2]= max(0,2*max(Ns[0]->c[0],Ns[1]->c[0])); /*RightBound*/
-    bounds[3]= min(0,2*min(Ns[0]->c[0],Ns[1]->c[0])); /*LeftBound */
-}
-
-/**************************************/
-/*      Desenho dos Objetos           */
-/**************************************/
-
-PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg,PIC Pplnt, PIC P,MASK Msk,int i,int j,double bounds[]){
-    /* recebe
-    window w1
-    pic auxiliar Paux
-    pic do background Pbkg
-    pic do objeto P
-    mask do objeto Msk
-
-    desenha o objeto em Paux na posição (i,j) e retorna Paux
-    */
-    PutPic(Pbkg, Pplnt,  0, 0,400,400,(-bounds[3])*WW/(bounds[2]-bounds[3])-200,
-    (-bounds[1])*WH/(bounds[0]-bounds[1])-200);
-
-    UnSetMask(Paux);
-    PutPic(Paux, Pbkg,  0, 0, WW, WH, 0, 0);
-    SetMask(Paux,Msk);
-    PutPic(Paux, P,  0, 0, 100, 100, i, j);
-    return Paux;
-}
-
-void DrawWindow(WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk){
-    /* recebe
-    window w1
-    pic transitorio para sobrepor todos os objetos Pf
-    pic da nave1 P1
-    pic da nave2 P2
-    pic auxiliar da nave1 Paux1
-    pic do background Pbkg
-    pic auxiliar da nave2 Paux2
-    mask da nave1 Msk1
-    mask da nave2 Msk2
-    Vetor contendo as duas naves Ns
-    fronteiras do mapa bounds
-    vetor de pics auxiliares dos projeteis Paux
-    vetor de pics dos projeteis Pproj
-    vetor de masks dos projeteis MaskProj
-    Vetor contendo projeteis Bs
-    numero de projeteis nb
-    tempo atual t
-    tempo limite dos projeteis tb
-
-    desenha todos os objetos em w1
-
-    as posições calculadas são recalculadas para as dimensões da tela
-    */
-
-    int i;
-
-    Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Pplnt,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
-    (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-    Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Pplnt,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
-    (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-    for(i=0;i<nb+2;i++){
-        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
-            Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
-            (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-        }
-    }
-    PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-}
-
-
-/*imprime dados no prompt*/
-int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
-    int i;
-    if(bo && t>tb){
-            bo=0;
-            printf("Tempo Limite de simulação dos projéteis alcançado!\n\n");
-        }
-    /* resultados impressos na saída padrão */
-    printf("Tempo %.3lf:\n",t);
-    for(i=0;i<2;i++){
-            printf("%5s:      x: %12.4e | y: %12.4e |",Ns[i]->nome,Ns[i]->c[0],Ns[i]->c[1]);
-            printf(" vx: %12.4e | vy: %12.4e\n",Ns[i]->v[0],Ns[i]->v[1]);
-    }
-    if(bo)
-            for(i=0;i<nb;i++){
-                printf("projétil%d:  x: %12.4e | y: %12.4e |",i+1,Bs[i]->c[0],Bs[i]->c[1]);
-                printf(" vx: %12.4e | vy: %12.4e \n",Bs[i]->v[0],Bs[i]->v[1]);
-            }
-    printf("\n");
-    return bo;
 }
 
 /**************************************/
