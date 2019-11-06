@@ -9,5 +9,5 @@ teste3_SOURCES= teste3.c samp.xpm mascara.xpm
 teste3_LDADD = xwc.o
 
 spacewar_SOURCES= spacewar.c
-spacewar_LDADD = xwc.o
+spacewar_LDADD = xwc.o spwar.o
 

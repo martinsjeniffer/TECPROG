@@ -1,0 +1,11 @@
+README
+
+NOMES:
+Giulia
+Jennifer
+Vitor
+
+BIBLIOTECA spwar:
+- para compilar e gerar o arquivo spwar.o
+- a primeira versão contém apenas as funções que não usam a biblioteca xwc, isso
+é, apenas aritmética com ponteiros double, a função check limit e orientação

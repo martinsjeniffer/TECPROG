@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
+#include "spwar.h"
 #include "xwc.h"
 
 #define G 6.673e-11 //constante gravitacional
@@ -11,15 +12,10 @@
 #define PI 3.14159265359    //pi
 #define AC 10   // aceleração gerada pelos controles manuais na nave
 #define INITACB 600 //velocidade inicial do projétil lançado
-#define RB 10   // raio de alcance do projétil antes de explodir
-#define BOMBRB 50   //raio do alcance da bomba, ou no caso o projétil que explodirá
-#define BOMINTERVAL 2 //duração do tempo final, onde o disparo se tornará uma bomba
-#define DISPLIM 10 //tempo limite de sobrevivência do disparo
-#define NumIma 4 //numero de imagens por quarto de rotação
 
 
 /*********************************/
-/*   Imprementação dos Structs   */ 
+/*   Imprementação dos Structs   */
 /*********************************/
 
 
@@ -59,7 +55,7 @@ struct planet{
 
 
 /*********************************/
-/*    Liberação de memória       */ 
+/*    Liberação de memória       */
 /*********************************/
 
 /*funções para desalocar a memória no final do programa*/
@@ -94,7 +90,7 @@ void FreeBullet(Bullet B){
 
 
 /*********************************/
-/*    Funções Construtoras       */ 
+/*    Funções Construtoras       */
 /*********************************/
 
 
@@ -160,8 +156,8 @@ Nave CriaNave(double m, double x, double y, double vx, double vy, char* nome,WIN
     N->nome=nome;
     N->m=m;
     N->c=c; /*coordenadas*/
-    N->v=v; /*velocidade*/ 
-    N->a=a; /*aceleração*/ 
+    N->v=v; /*velocidade*/
+    N->a=a; /*aceleração*/
     N->o=0; //começa apontando para cima
     N->c[0]=x;
     N->c[1]=y;
@@ -236,67 +232,9 @@ Bullet* CriaBullets(double**bullets, int nb,WINDOW* w1){
 
 
 
-/**************************************/
-/* Aritmética com ponteiros double*   */ 
-/**************************************/
-
-
-/* Quadrado do módulo do vetor c */
-double AbsSqrd(double* c){
-    return (c[0])*(c[0])+(c[1])*(c[1]);
-}
-
-/* Multiplica o vetor c por uma constante k */
-double* Multk(double* c, double k){
-    double newx = c[0]*k, newy=c[1]*k;
-    c[0]=newx;
-    c[1]=newy;
-    return c;
-}
-
-/* Adiciona o conteúdo de c2 em c */
-double* Add(double* c,double* c2){
-    c[0]=c[0]+c2[0];
-    c[1]=c[1]+c2[1];
-    return c;
-}
-
-/* Subtrai o conteúdo de c2 em c */
-double* Sub(double* c,double* c2){
-    (c[0])-=(c2[0]);
-    (c[1])-=(c2[1]);
-    return c;
-}
-
-/* Retorna um vetor cópia de c */
-double* Copia(double* c){
-    double* c2=malloc(sizeof(double)*2);
-    c2[0]=c[0];
-    c2[1]=c[1];
-    return c2;
-}
-
-//retorna modulo de x
-double AbsVal(double x){
-    if(x>=0)return x;
-    return -x;
-}
-
-//retorna o maximo entre x e y
-double max(double x, double y){
-    if(x>y)return x;
-    return y;
-}
-
-//retorna o minimo entre x e y
-double min(double x, double y){
-    if(x<y)return x;
-    return y;
-}
-
 
 /**************************************/
-/*      Forças gravitacionais         */ 
+/*      Forças gravitacionais         */
 /**************************************/
 
 
@@ -352,34 +290,14 @@ double* gravityBB(Bullet B1,Bullet B2){
 /*  Colisões, Orientação e Disparos   */
 /**************************************/
 
-
-//escolhe qual imagem do vetor tem a rotação mais apropriada e retorna sua posição no vetor
-int Orientacao(double *a)
-{
-    /*
-    Vetor de imagens com a seguinte organização (de 0 a 2n angulos a direita e 2n a 4n angulos a esquerda):
-    0... |n  ...  |2n... |3n  .....|4n
-    cima |direita |baixo |esquerda |cima
-    Devolve uma int orientacao
-    */
-    double segm;
-    double alpha; //angulo entre vetor a e (0,1)
-    int r;
-    if(a[0]==0 && a[1]<=0)alpha=0;
-    else if(a[0]==0 && a[1]>0)alpha=PI;
-    else alpha = atan((double)(-a[1]/a[0]));
-    segm = 2*PI/(4*NumIma);
-    r=a[0]>0 ? -(alpha-(double)(PI/2))/segm : -(alpha-(double)(PI/2))/segm+8;
-    return r;
-}
-
+//orientação em spwar.h
 
 //Confere se o teclado foi apertado. Caso positivo, envia a devida orientação para prosseguir.
 int CheckKB(WINDOW *w1){
     int b;
     int key;
     b=WCheckKBD(w1);
-    
+
     if(b){
         key=WGetKey(w1);
         if(key==25)return 1;
@@ -415,17 +333,6 @@ void BoostB(Bullet B,double bounds[]){
     free(v);
 }
 
-//checa se dois objetos em coordenadas c1 e c2 se colidiram ou não, bomb é um inteiro que indica se o objeto é uma bomba
-//disptime é o tempo limite para o projétil não explodir. Desde tempo até seu fim este estará com um alcance maior de colisão
-int CheckCollision(double* c1, double* c2,int bomb,int disptime){
-    double* c=Copia(c1);
-    Sub(c,c2);
-    if(AbsSqrd(c)<RB+(bomb==1)*(disptime>DISPLIM-BOMINTERVAL)*BOMBRB){
-        free(c);
-        return 1;
-    }
-    return 0;
-}
 
 //checa colisão com planeta
 int CheckCollisionPlnt(Planet P,double* c1){
@@ -447,14 +354,14 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
     switch (dir)
     {
     case 1:                 // acelera nave 1, botão w
-        BoostN(Ns[0],bounds);   
+        BoostN(Ns[0],bounds);
         break;
     case 2:             // rotaciona nave 1 no sentido horário, botão d
-        if(Ns[0]->o==15)Ns[0]->o=-1; 
+        if(Ns[0]->o==15)Ns[0]->o=-1;
         (Ns[0]->o)++;
         break;
     case 3:              // nave 1 dispara projétil, botão s
-        if(dispclk[0]==0)CriaDisparo(w1,Bs,Ns,0,nb,bounds); 
+        if(dispclk[0]==0)CriaDisparo(w1,Bs,Ns,0,nb,bounds);
         dispclk[0]=1;
         break;
     case 4:             //nave 1 roda no sentido anti-horário, botão a
@@ -486,22 +393,8 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
 
 
 /**************************************/
-/*  Definição das fronteiras do mapa  */ 
+/*  Definição das fronteiras do mapa  */
 /**************************************/
-
-/*Se a coordenada estiver fora dos limites do mapa, colocar o objeto dentro dos limites*/
-double* CheckLimits(double*c,double bounds[]){
-    while(c[1]>bounds[0])
-        (c[1])-=(bounds[0]-bounds[1]);
-    while(c[1]<bounds[1])
-        (c[1])+=(bounds[0]-bounds[1]);
-    while(c[0]>bounds[2])
-        (c[0])-=(bounds[2]-bounds[3]);
-    while(c[0]<bounds[3])
-        (c[0])+=(bounds[2]-bounds[3]);
-    return c;
-}
-
 
 void DefineBoundaries(Nave* Ns,double bounds[]){
     /*Os limites são definidos de acordo com as posições das naves*/
@@ -515,7 +408,7 @@ void DefineBoundaries(Nave* Ns,double bounds[]){
 }
 
 /**************************************/
-/*      Desenho dos Objetos           */ 
+/*      Desenho dos Objetos           */
 /**************************************/
 
 PIC DrawShip(WINDOW* w1,PIC Paux,PIC Pbkg,PIC Pplnt, PIC P,MASK Msk,int i,int j,double bounds[]){
@@ -604,7 +497,7 @@ int ImprimeDados(int bo,double t, double tb,int nb, Nave* Ns,Bullet* Bs){
 }
 
 /**************************************/
-/*  Simulação do sistema dinâmico     */ 
+/*  Simulação do sistema dinâmico     */
 /**************************************/
 
 int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb,int* dispclk,double bounds[], WINDOW *w1){
@@ -626,7 +519,7 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
     double* gpn1 = gravityPN(P, Ns[0]), *gpn2=gravityPN(P, Ns[1]); /* cálculo da gravidade entre o planeta e as naves 1 e 2 */
     double* gnn  = gravityNN(Ns[0], Ns[1]); /* cálculo da gravidade entre as duas naves */
     double* gbn1,*gbn2,*gpb;                /* cálculo da gravidade para os projéteis */
-    
+
     //checa se o tempo limite dos disparos passou. Caso positivo, destroi projétil.
     if(dispclk[0]>DISPLIM)dispclk[0]=0;
     else if(dispclk[0]>0) (dispclk[0])++;
@@ -667,7 +560,7 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
                 gbn1 = Multk(gbn1, (double)(Bs[i]->m));
                 Bs[j]->a = Add(Bs[j]->a, Multk(gbn1, (double)(-1/Bs[j]->m)));
                 free(gbn1);
-            
+
             }
             if(i<nb){   //calculo da interação entre projéteis e naves/planetas
                 /* Projétil i+1 com Naves e Planeta */
@@ -709,8 +602,8 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
     }
     for(i=0;i<nb;i++)   //atualiza orientações
         Bs[i]->o = Orientacao(Bs[i]->v);
-    
-    
+
+
     dir=CheckKB(w1);    //gera ações captadas no teclado
     ActKB(dir,dispclk,Ns,Bs,nb,bounds,w1);
 
@@ -722,7 +615,7 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
     Ns[0]->v=Multk(Ns[0]->v,(double)1/dt);
     Ns[1]->v=Multk(Ns[1]->v,(double)1/dt);
     col=CheckCollision(Ns[0]->c,Ns[1]->c,0,0); //checa colisões das naves
-    if(col)return col;  
+    if(col)return col;
     col=CheckCollisionPlnt(P,Ns[0]->c);
     if(col)return col;
     col=CheckCollisionPlnt(P,Ns[1]->c);
@@ -753,7 +646,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     double t=0;
     int i, bo=1,col,*dispclk=calloc(2,sizeof(int));
     printf("\nSimulação Iniciada!\n");
-    
+
     for(t = 0; t < tf; t += dt){
 
         bo=ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /*impressão dos dados*/
@@ -765,7 +658,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
         }                                                       /*o objeto reaparece*/
         for(i=0;i<2;i++){
             if(dispclk[i]){
-                Bs[nb+i]->c=CheckLimits(Bs[nb+i]->c,bounds); 
+                Bs[nb+i]->c=CheckLimits(Bs[nb+i]->c,bounds);
             }
         }
         for(i=0;i<2;i++){                                       /*do outro lado do mapa*/
@@ -780,7 +673,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
             printf("\nHouve Colisão!\n");
             break;
         }
-    }  
+    }
     CloseGraph();
     WDestroy(w1);
 
@@ -789,7 +682,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
 }
 
 /**************************************/
-/*     Inicialização da rotina        */ 
+/*     Inicialização da rotina        */
 /**************************************/
 
 int main(int argc, char*argv[]){
@@ -827,7 +720,7 @@ int main(int argc, char*argv[]){
     }
 
     P = CriaPlaneta(DadosP[0], DadosP[1], DadosP[2]);
-    
+
     PrepareMask(w1,Pbkg,Mskplnt);
 
 
@@ -917,4 +810,3 @@ int main(int argc, char*argv[]){
 
     return 0;
 }
-
