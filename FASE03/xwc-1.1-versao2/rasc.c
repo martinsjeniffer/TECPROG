@@ -5,17 +5,6 @@
 
 #define NumIma 4
 
-int Valid(int c, char s[10]){
-  /*
-  Checa se c pertence a string s;
-  */
-  int i;
-  for (i=0; i < strlen(s); i++)
-    if (c==s[i])
-      return i+1;
-  return 0;
-}
-
 
 int main (){
 
@@ -28,7 +17,7 @@ int main (){
     if (v=Valid(c,s))
       printf("%d\n", v);
     putchar(c);
-    puts("esparando");
+    puts("e?");
   }
   /* use system call to set terminal behaviour to more normal behaviour*/
   system ("/bin/stty cooked");
