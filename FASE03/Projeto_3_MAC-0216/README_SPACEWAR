@@ -5,7 +5,10 @@ Giulia
 Jennifer
 Vitor
 
+JOGO:
+- para rodar: ./teste3 0.01 <inputs/8.txt
+
 BIBLIOTECA spwar:
-- para compilar e gerar o arquivo spwar.o
+- para compilar e gerar o arquivo spwar.o: gcc -o spwar.o -c spwar.c
 - a primeira versão contém apenas as funções que não usam a biblioteca xwc, isso
 é, apenas aritmética com ponteiros double, a função check limit e orientação
