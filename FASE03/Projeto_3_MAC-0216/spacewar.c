@@ -4,7 +4,6 @@
 #include <math.h>
 #include <string.h>
 #include "spwar.h"
-#include "xwc.h"
 
 
 /**************************************/
@@ -30,7 +29,93 @@ int Orientacao(double *a)
     r=a[0]>0 ? -(alpha-(double)(PI/2))/segm : -(alpha-(double)(PI/2))/segm+8;
     return r;
 }
+//Cria de devolve Sprite de explosão
+Sprite CriaExplo (WINDOW* w1)
+{
+  Sprite S = malloc(sizeof(struct sprite));
+  int i;
+  char str[50],strint[10];
+  S->P=malloc(4*NumIma*(sizeof(PIC)));
+  S->Aux=malloc(4*NumIma*(sizeof(PIC)));
+  S->Msk=malloc(4*NumIma*(sizeof(MASK)));
+  for(i=0;i<10;i++){                  //10 foi o número escolhido de frames
+      S->Msk[i] = NewMask(w1,WW,WH);
+      strcpy(str,"images/explo/frame");
+      sprintf(strint,"%d",i);
+      strcat(str,strint);
+      strcat(str,".xpm");
+      S->P[i] = ReadPic(w1, str, S->Msk[i]);
+      S->Aux[i] = NewPic(w1, WW, WH);
+      PrepareMask(w1, S->Aux[i], S->Msk[i]);
+  }
+  return S;
+}
 
+//faz a animação da colisão e diz o vencedor
+void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk)
+{
+  /*
+  win = 3 naves colidiram, 1 player1 ganha, 2 player2 ganha
+  */
+  Sprite Explo = CriaExplo(w1);
+  int i, j;
+
+/* Animação da explosão */
+  if (win == 3) { //navexnave
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+  }
+  else if (win == 1) { //nave1 explodiu
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Pplnt,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+  }
+  else if (win == 2) { //nave0 explodiu
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Pplnt,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+  }
+}
 
 //Confere se o teclado foi apertado. Caso positivo, envia a devida orientação para prosseguir.
 int CheckKB(WINDOW *w1){
@@ -233,15 +318,15 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
             }
             if(i<nb){   //checa colisões
                 col=CheckCollision(Ns[0]->c,Bs[i]->c,0,0);
-                if(col)return col;
+                if(col)return 2;
                 col=CheckCollision(Ns[1]->c,Bs[i]->c,0,0);
-                if(col)return col;
+                if(col)return 1;
             }
             else if(dispclk[i-nb]){ //projéteis não atingem a nave que a disparou
                 if(i!=nb)col=CheckCollision(Ns[0]->c,Bs[i]->c,1,dispclk[0]);
-                if(col)return col;
+                if(col)return 2;
                 if(i!=nb+1)col=CheckCollision(Ns[1]->c,Bs[i]->c,1,dispclk[1]);
-                if(col)return col;
+                if(col)return 1;
             }
         }
     }
@@ -260,10 +345,11 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
     Ns[0]->v=Multk(Ns[0]->v,(double)1/dt);
     Ns[1]->v=Multk(Ns[1]->v,(double)1/dt);
     col=CheckCollision(Ns[0]->c,Ns[1]->c,0,0); //checa colisões das naves
-    if(col)return col;
+    if(col)return 3; //naves colidiram entre si
     col=CheckCollisionPlnt(P,Ns[0]->c);
-    if(col)return col;
+    if(col)return 2; //player2 ganhou
     col=CheckCollisionPlnt(P,Ns[1]->c);
+    if(col)return 1; //player1 ganhou
     return col;
 }
 
@@ -316,6 +402,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
                                                 /*intervalo entre frames*/
         if(col){
             printf("\nHouve Colisão!\n");
+            GameOver(col,w1,Pf,Pbkg,Pplnt,Ns,bounds,Bs,nb,t,tb,dispclk);
             break;
         }
     }

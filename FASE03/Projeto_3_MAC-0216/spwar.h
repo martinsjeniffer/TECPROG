@@ -9,7 +9,7 @@
 // necessárias para entender esta
 // interface.
 
-
+#include "xwc.h"
 // Definições das macros que
 // a biblioteca bib usa.
 
