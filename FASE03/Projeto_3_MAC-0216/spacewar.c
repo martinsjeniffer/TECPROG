@@ -51,70 +51,36 @@ Sprite CriaExplo (WINDOW* w1)
   return S;
 }
 
-//faz a animação da colisão e diz o vencedor
-void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk)
+//cria e devolve sprite da intro
+Sprite CriaIntro (WINDOW* w1)
 {
-  /*
-  win = 3 naves colidiram, 1 player1 ganha, 2 player2 ganha
-  */
-  Sprite Explo = CriaExplo(w1);
-  int i, j;
-
-/* Animação da explosão */
-  if (win == 3) { //navexnave
-    for (j=0; j<10; j++) {
-      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-      for(i=0;i<nb+2;i++){
-        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
-          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
-          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-        }
-      }
-      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
-    }
+  Sprite S = malloc(sizeof(struct sprite));
+  int i;
+  char str[50],strint[10];
+  S->P=malloc(3*(sizeof(PIC)));
+  S->Aux=malloc(3*(sizeof(PIC)));
+  S->Msk=malloc(3*(sizeof(MASK)));
+  for(i=0;i<3;i++){                  //10 foi o número escolhido de frames
+      S->Msk[i] = NewMask(w1,WW,WH);
+      strcpy(str,"images/intro/intro");
+      sprintf(strint,"%d",i);
+      strcat(str,strint);
+      strcat(str,".xpm");
+      S->P[i] = ReadPic(w1, str, S->Msk[i]);
+      S->Aux[i] = NewPic(w1, WW, WH);
+      PrepareMask(w1, S->Aux[i], S->Msk[i]);
   }
-  else if (win == 1) { //nave1 explodiu
-    for (j=0; j<10; j++) {
-      Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Pplnt,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+  return S;
+}
 
-      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-      for(i=0;i<nb+2;i++){
-        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
-          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
-          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-        }
-      }
-      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
-    }
-  }
-  else if (win == 2) { //nave0 explodiu
-    for (j=0; j<10; j++) {
-      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-      Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Pplnt,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
-      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-
-      for(i=0;i<nb+2;i++){
-        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
-          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
-          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
-        }
-      }
-      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
-    }
-  }
+//devolve pic com P2 em (i,j) sobre P1, Msk é a mascara já aplicada em P2
+PIC DrawOver (PIC P1, PIC P2, PIC Paux, MASK Msk, int i, int j)
+{
+  UnSetMask(Paux);
+  PutPic(Paux, P1,  0, 0, WW, WH, 0, 0);
+  SetMask(Paux,Msk);
+  PutPic(Paux, P2,  0, 0, WW, WH, i, j);
+  return Paux;
 }
 
 //Confere se o teclado foi apertado. Caso positivo, envia a devida orientação para prosseguir.
@@ -224,6 +190,113 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
     default:    //caso contrario, ignorar ação a ser tomada.
         break;
     }
+}
+
+//passa as imagens da pasta intro com o backgroundno
+void Intro (WINDOW* w1, PIC Pbkg)
+{
+  PIC Pf;
+  int i, g;
+  Sprite Intro = CriaIntro(w1);
+
+  Pf = NewPic(w1, WW, WH);
+  for (i=0; i<3; i++) {
+    //passa as instruções uma por uma e coloca as coloca na posição (300,200)
+    Pf = DrawOver (Pbkg, Intro->P[i], Intro->Aux[i], Intro->Msk[i], 300, 200);
+    PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+    //checa se alguma tecla foi apertada, no caso apenas teclas do jogo (a, w, s, d e setas)
+    g=0;
+    do {
+      g=CheckKB(w1);
+    } while(!g);
+    //para evitar que no mesmo apertar passe mais de uma instrução
+    usleep(60000);
+  }
+  FreeSprite (Intro, 3);
+}
+
+//faz a animação da colisão e diz o vencedor
+void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk)
+{
+  /*
+  win = 3 naves colidiram, 1 player1 ganha, 2 player2 ganha
+  */
+  Sprite Explo = CriaExplo(w1);
+  int i, j;
+  PIC GO, GOA; //pic e mask do game over, e pic auxiliar
+  MASK MGO;
+
+  MGO = NewMask(w1, WW, WH);
+  GOA = NewPic (w1, WW, WH);
+
+/* Animação da explosão */
+  if (win == 3) { //navexnave
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Explo->Aux[j],Pf,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+      GO = ReadPic(w1, "images/gameover/go3.xpm", MGO); //pic do planeta
+      Pf = DrawOver (Pf, GO, GOA, MGO, 550, 100);
+      puts ("Ambas as naves foram destruídas");
+  }
+  else if (win == 1) { //nave1 explodiu
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Ns[0]->spt->Aux[Ns[0]->o],Pbkg,Pplnt,Ns[0]->spt->P[Ns[0]->o],Ns[0]->spt->Msk[Ns[0]->o],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+    GO = ReadPic(w1, "images/gameover/go2.xpm", MGO); //pic do planeta
+    Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
+    puts ("Player 2 venceu!");
+  }
+  else if (win == 2) { //nave0 explodiu
+    for (j=0; j<10; j++) {
+      Pf=DrawShip(w1,Explo->Aux[j],Pbkg,Pplnt,Explo->P[j],Explo->Msk[j],(-bounds[3]+Ns[0]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[0]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      Pf=DrawShip(w1,Ns[1]->spt->Aux[Ns[1]->o],Pf,Pplnt,Ns[1]->spt->P[Ns[1]->o],Ns[1]->spt->Msk[Ns[1]->o],(-bounds[3]+Ns[1]->c[0])*WW/(bounds[2]-bounds[3]),
+      (-bounds[1]+Ns[1]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+
+      for(i=0;i<nb+2;i++){
+        if((t<tb && i<nb) || (i>=nb && dispclk[i-nb])){
+          Pf=DrawShip(w1,Bs[i]->spt->Aux[Bs[i]->o],Pf,Pplnt,Bs[i]->spt->P[Bs[i]->o],Bs[i]->spt->Msk[Bs[i]->o],(-bounds[3]+Bs[i]->c[0])*WW/(bounds[2]-bounds[3]),
+          (-bounds[1]+Bs[i]->c[1])*WH/(bounds[0]-bounds[1]),bounds);
+        }
+      }
+      PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+      usleep(60000);
+    }
+    GO = ReadPic(w1, "images/gameover/go1.xpm", MGO); //pic do planeta
+    Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
+    puts ("Player 1 venceu!");
+  }
+  PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+  usleep(60000);
+
+  FreeSprite (Explo,10);
 }
 
 /**************************************/
@@ -376,6 +449,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     #else
     double t=0;
     int i, bo=1,col,*dispclk=calloc(2,sizeof(int));
+    int g;
     printf("\nSimulação Iniciada!\n");
 
     for(t = 0; t < tf; t += dt){
@@ -406,12 +480,20 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
             break;
         }
     }
+
+    //checa se alguma tecla foi apertada, no caso apenas teclas do jogo (a, w, s, d e setas)
+    g=0;
+    do {
+      g=CheckKB(w1);
+    } while(!g);
+
     CloseGraph();
     WDestroy(w1);
 
     printf("Simulação Finalizada!\n");
     #endif
 }
+
 
 /**************************************/
 /*     Inicialização da rotina        */
@@ -436,6 +518,7 @@ int main(int argc, char*argv[]){
 
     w1 = InitGraph(WW,WH, "SpaceWar");
     InitKBD(w1);
+
         /*criação das mascaras para tornam o fundo dos objetos transparente*/
     Mskplnt = NewMask(w1,WW,WH);
 
@@ -508,6 +591,8 @@ int main(int argc, char*argv[]){
     for(i=0;i<nb;i++){
         Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
     }
+
+    Intro (w1, Pbkg);
 
     printf("Simulação prestes a ser iniciada...\n");
     printf("TimeStep: %.4lf\n",dt);

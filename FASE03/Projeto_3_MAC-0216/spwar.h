@@ -148,8 +148,6 @@ double* gravityBN(Bullet B, Nave N);
 double* gravityBB(Bullet B1,Bullet B2);
 
 
-
-
 /*********************************/
 /*    Liberação de memória       */
 /*********************************/
@@ -159,7 +157,7 @@ void FreeNave(Nave N);
 
 void FreeBullet(Bullet B);
 
-void FreeSprite(Sprite S);
+void FreeSprite(Sprite S, int n);
 
 
 #endif

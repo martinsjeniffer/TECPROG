@@ -5,7 +5,6 @@
 #include <stdlib.h>
 #include <math.h>
 #include <string.h>
-#include "xwc.h"
 #include "spwar.h"
 
 
@@ -392,19 +391,19 @@ void FreeNave(Nave N){
     free(N->v);
     free(N->a);
     free(N->nome);
-    FreeSprite(N->spt);
+    FreeSprite(N->spt, 16);
     free(N);
 }
 void FreeBullet(Bullet B){
     free(B->c);
     free(B->v);
     free(B->a);
-    FreeSprite(B->spt);
+    FreeSprite(B->spt, 16);
     free(B);
 }
-void FreeSprite(Sprite S){
+void FreeSprite(Sprite S, int n){
     int i;
-    for(i=0;i<16;i++){
+    for(i=0;i<n;i++){
         free(S->P[i]);
         free(S->Aux[i]);
     }
