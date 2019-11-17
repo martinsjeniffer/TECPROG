@@ -1,5 +1,9 @@
 // Este arquivo: spwar.h
-// Breve descrição da biblioteca: ...
+// Breve descrição da biblioteca:
+/*
+Biblioteca com comandos usados no arquivo spacewar.c. As funções da biblioteca são esenciais para o funcionamento do jogo, mas não para a compreensão dele, assim, a biblioteca contém apenas as funções auxiliares assim como definições e etc.
+
+*/
 /////////////////////////////////////
 
 #ifndef _SPWAR_H
@@ -62,10 +66,6 @@ struct sprite {
   PIC *Aux;
   MASK *Msk;
 };
-
-// Protótipos das funções da
-// biblioteca.
-/////////////////////////////////////
 
 /**************************************/
 /* Aritmética com ponteiros double*   */

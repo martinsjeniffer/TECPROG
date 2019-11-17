@@ -35,11 +35,18 @@ Cada nave pode disparar apenas um projétil por vez, tendo que esperar que seu �
 
 Colisões entre objetos agora são consideradas, havendo um raio de distância minimo para o qual dois corpos podem se aproximar. Para projéteis disparados por naves, seu raio de colisão aumenta por um breve período de tempo no fim de sua vida útil.
 
-As imagens utilizadas estão na pasta images, contendo ambos os xpms dos projéteis na pasta bullet e naves na pasta nave. 
+As imagens utilizadas estão na pasta images, contendo ambos os xpms dos projéteis na pasta bullet e naves na pasta nave.
 
 As rotações foram discretizadas em 16 posições distintas.
 
 As dimensões das posições dos objetos definem tanto as fronteiras quanto a escala do mapa. O mapa possui tamanho fixo, enquanto ajusta-se a escala para que ela seja compatível com o tamanho da janela.
+
+A animação da explosão utilizou 10 frames, a arte foi retirada de: https://untiedgames.itch.io/five-free-pixel-explosions no dia 13/11/2019.
+A fonte pixelada utilizada foi retirada de: https://fontmeme.com/pt/fontes-pixeladas/ no dia 17/11/2019
+
+
+Breve explicação da biblioteca spwar:
+Biblioteca com comandos usados no arquivo spacewar.c. As funções da biblioteca são esenciais para o funcionamento do jogo, mas não para a compreensão dele, assim, a biblioteca contém apenas as funções auxiliares assim como definições e etc.
 
 
 
@@ -75,5 +82,5 @@ _________________
     simples.
   * `teste2.c' Mostra como fazer uma animação simples.
   * `teste3.c' Uso da biblioteca `Xpm' para ler e gravar /sprites/.
-	
+
 ** o programa 'teste3.c' foi alterado para receber o programa do EP.
