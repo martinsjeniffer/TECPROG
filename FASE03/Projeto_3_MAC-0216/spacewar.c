@@ -103,10 +103,24 @@ int CheckKB(WINDOW *w1){
     return 0;
 }
 
+int CheckKBrestart(WINDOW *w1){
+    int b;
+    int key;
+    b=WCheckKBD(w1);
+
+    if(b){
+        key=WGetKey(w1);
+        printf("\n%dKEY\n",key);
+        if(key==29)return 1;
+        else if(key==57)return 2;
+    }
+    return 0;
+}
+
 //checa se dois objetos em coordenadas c1 e c2 se colidiram ou não, bomb é um inteiro que indica se o objeto é uma bomba
 //disptime é o tempo limite para o projétil não explodir. Desde tempo até seu fim este estará com um alcance maior de colisão
 int CheckCollision(double* c1, double* c2,int bomb,int disptime){
-    double* c=Copia(c1);
+    double* c=Copia(c1); 
     Sub(c,c2);
     if(AbsSqrd(c)<RB+(bomb==1)*(disptime>DISPLIM-BOMINTERVAL)*BOMBRB){
         free(c);
@@ -216,7 +230,7 @@ void Intro (WINDOW* w1, PIC Pbkg)
 }
 
 //faz a animação da colisão e diz o vencedor
-void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk)
+void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk,int pontos[])
 {
   /*
   win = 3 naves colidiram, 1 player1 ganha, 2 player2 ganha
@@ -245,7 +259,7 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
         }
       }
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
+      usleep(20000);
     }
       GO = ReadPic(w1, "images/gameover/go3.xpm", MGO); //pic do planeta
       Pf = DrawOver (Pf, GO, GOA, MGO, 550, 100);
@@ -266,11 +280,13 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
         }
       }
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
+      usleep(20000);
     }
     GO = ReadPic(w1, "images/gameover/go2.xpm", MGO); //pic do planeta
     Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
     puts ("Player 2 venceu!");
+    (pontos[1])++;
+
   }
   else if (win == 2) { //nave0 explodiu
     for (j=0; j<10; j++) {
@@ -287,11 +303,12 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
         }
       }
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
-      usleep(60000);
+      usleep(20000);
     }
     GO = ReadPic(w1, "images/gameover/go1.xpm", MGO); //pic do planeta
     Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
     puts ("Player 1 venceu!");
+    (pontos[0])++;
   }
   PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
   usleep(60000);
@@ -426,7 +443,7 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
     return col;
 }
 
-void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg,PIC Pplnt, PIC Pf){
+void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, double tb,double bounds[],WINDOW* w1,PIC Pbkg,PIC Pplnt, PIC Pf,int pontos[]){
     /* recebe
     Vetor com projeteis Bs
     vetor com naves Ns
@@ -476,7 +493,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
                                                 /*intervalo entre frames*/
         if(col){
             printf("\nHouve Colisão!\n");
-            GameOver(col,w1,Pf,Pbkg,Pplnt,Ns,bounds,Bs,nb,t,tb,dispclk);
+            GameOver(col,w1,Pf,Pbkg,Pplnt,Ns,bounds,Bs,nb,t,tb,dispclk,pontos);
             break;
         }
     }
@@ -486,9 +503,6 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
     do {
       g=CheckKB(w1);
     } while(!g);
-
-    CloseGraph();
-    WDestroy(w1);
 
     printf("Simulação Finalizada!\n");
     #endif
@@ -500,7 +514,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
 /**************************************/
 
 int main(int argc, char*argv[]){
-    int i,j,nb;
+    int i,j,nb,counter,pontos[2],stopcond=1,key;
     double dt = atof(argv[1]) /*timestep dado por linha de comando*/, tb, bounds[4]/*limites do mapa a serem definidos*/;
     double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
     char** Nomes = malloc(sizeof(char*)*2);
@@ -521,7 +535,7 @@ int main(int argc, char*argv[]){
 
         /*criação das mascaras para tornam o fundo dos objetos transparente*/
     Mskplnt = NewMask(w1,WW,WH);
-
+    pontos[0]=pontos[1]=0;
     Pbkg = ReadPic(w1, "images/background.xpm", NULL); //pic do background
     Pplnt = ReadPic(w1, "images/planeta_rosa.xpm", Mskplnt); //pic do planeta
     Pf = NewPic(w1, WW, WH);
@@ -557,12 +571,7 @@ int main(int argc, char*argv[]){
         }
     }
 
-    Ns = CriaNaves(DadosN, Nomes,w1);
 
-    DefineBoundaries(Ns,bounds);
-
-    PutPic(Pbkg, Pplnt,  0, 0,400,400,(-bounds[3])*WW/(bounds[2]-bounds[3])-200,
-    (-bounds[1])*WH/(bounds[0]-bounds[1])-200);
 
     /*input para criação dos Projéteis*/
     if(!scanf("%d", &nb)){
@@ -586,26 +595,47 @@ int main(int argc, char*argv[]){
         }
     }
 
-    Bs = CriaBullets(DadosB, nb,w1);
-
-    for(i=0;i<nb;i++){
-        Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
-    }
-
     Intro (w1, Pbkg);
 
-    printf("Simulação prestes a ser iniciada...\n");
-    printf("TimeStep: %.4lf\n",dt);
-    printf("Número de projéteis: %d\n",nb);
-    printf("Tempo de simulação: %.3lf\n",P->t);
-    printf("Limite Superior do Mapa: %.3e\n",bounds[0]);
-    printf("Limite Inferior do Mapa: %.3e\n",bounds[1]);
-    printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
-    printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
+    while(stopcond){
+        Ns = CriaNaves(DadosN, Nomes,w1);
 
-    /*simulação do movimento*/
-    Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pplnt,Pf);
+        DefineBoundaries(Ns,bounds);
 
+        Bs = CriaBullets(DadosB, nb,w1);
+
+        for(i=0;i<nb;i++){
+            Bs[i]->c=CheckLimits(Bs[i]->c,bounds);
+        }
+
+        PutPic(Pbkg, Pplnt,  0, 0,400,400,(-bounds[3])*WW/(bounds[2]-bounds[3])-200,
+        (-bounds[1])*WH/(bounds[0]-bounds[1])-200);
+
+        printf("Simulação prestes a ser iniciada...\n");
+        printf("TimeStep: %.4lf\n",dt);
+        printf("Número de projéteis: %d\n",nb);
+        printf("Tempo de simulação: %.3lf\n",P->t);
+        printf("Limite Superior do Mapa: %.3e\n",bounds[0]);
+        printf("Limite Inferior do Mapa: %.3e\n",bounds[1]);
+        printf("Limite Direito do Mapa: %.3e\n",bounds[2]);
+        printf("Limite Esquerdo do Mapa: %.3e\n",bounds[3]);
+
+        /*simulação do movimento*/
+        Simulate(Bs, Ns, P, nb, dt, DadosP[2], tb,bounds,w1,Pbkg,Pplnt,Pf,pontos);
+        while(1){
+            key=CheckKBrestart(w1);
+            if(key==1)
+                break;
+            else if (key==2){
+                stopcond=0;
+                break;
+            }
+        }
+        printf("\nprontuacao: %d X %d\n",pontos[0],pontos[1]);
+    }
+
+    CloseGraph();
+    WDestroy(w1);
     /*desalocando os vetores*/
     for(i = 0; i < 2; i++){
         FreeNave(Ns[i]);
