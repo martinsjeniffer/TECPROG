@@ -120,7 +120,7 @@ int CheckKBrestart(WINDOW *w1){
 //checa se dois objetos em coordenadas c1 e c2 se colidiram ou não, bomb é um inteiro que indica se o objeto é uma bomba
 //disptime é o tempo limite para o projétil não explodir. Desde tempo até seu fim este estará com um alcance maior de colisão
 int CheckCollision(double* c1, double* c2,int bomb,int disptime){
-    double* c=Copia(c1); 
+    double* c=Copia(c1);
     Sub(c,c2);
     if(AbsSqrd(c)<RB+(bomb==1)*(disptime>DISPLIM-BOMINTERVAL)*BOMBRB){
         free(c);
@@ -168,7 +168,7 @@ void CriaDisparo(WINDOW* w1,Bullet* Bs, Nave* Ns, int i,int nb,double bounds[]){
 }
 
 //ações a serem tomadas de acordo com o input do teclado
-void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WINDOW* w1){
+void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WINDOW* w1, int pontos[]){
     switch (dir)
     {
     case 1:                 // acelera nave 1, botão w
@@ -181,6 +181,7 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
     case 3:              // nave 1 dispara projétil, botão s
         if(dispclk[0]==0)CriaDisparo(w1,Bs,Ns,0,nb,bounds);
         dispclk[0]=1;
+        (pontos[0])-=10;
         break;
     case 4:             //nave 1 roda no sentido anti-horário, botão a
         if(Ns[0]->o==0)Ns[0]->o=16;
@@ -196,6 +197,7 @@ void ActKB(int dir,int* dispclk, Nave* Ns, Bullet* Bs, int nb,double bounds[],WI
     case 7:             // nave 2 dispara projétil, botão downarrow
         if(dispclk[1]==0)CriaDisparo(w1,Bs,Ns,1,nb,bounds);
         dispclk[1]=1;
+        (pontos[1])-=10;
         break;
     case 8:             // rotaciona nave 2 no sentido anti-horário, botão leftarrow
         if(Ns[1]->o==0)Ns[1]->o=16;
@@ -216,7 +218,7 @@ void Intro (WINDOW* w1, PIC Pbkg)
   Pf = NewPic(w1, WW, WH);
   for (i=0; i<3; i++) {
     //passa as instruções uma por uma e coloca as coloca na posição (300,200)
-    Pf = DrawOver (Pbkg, Intro->P[i], Intro->Aux[i], Intro->Msk[i], 300, 200);
+    Pf = DrawOver (Pbkg, Intro->P[i], Intro->Aux[i], Intro->Msk[i], 100, 200);
     PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
     //checa se alguma tecla foi apertada, no caso apenas teclas do jogo (a, w, s, d e setas)
     g=0;
@@ -229,11 +231,42 @@ void Intro (WINDOW* w1, PIC Pbkg)
   FreeSprite (Intro, 3);
 }
 
-//faz a animação da colisão e diz o vencedor
-void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk,int pontos[])
+//checa vencedor
+void GameOver (int pontos[], WINDOW* w1, PIC Pbkg) {
+  PIC Pf;
+  PIC GO, GOA; //pic e mask do game over, e pic auxiliar
+  MASK MGO;
+
+  Pf = NewPic(w1, WW, WH);
+  MGO = NewMask(w1, WW, WH);
+  GOA = NewPic (w1, WW, WH);
+
+  if (pontos[0]-pontos[1] > 0) {//player1 venceu
+    GO = ReadPic(w1, "images/gameover/go1.xpm", MGO);
+    Pf = DrawOver (Pbkg, GO, GOA, MGO, 450, 50);
+    puts("Player1 ganhou!");
+  }
+  else if (pontos[0]-pontos[1] < 0) { //player2 venceu
+    GO = ReadPic(w1, "images/gameover/go2.xpm", MGO);
+    Pf = DrawOver (Pbkg, GO, GOA, MGO, 450, 50);
+    puts("Player2 ganhou!");
+  }
+  else {
+    GO = ReadPic(w1, "images/gameover/draw.xpm", MGO); //empate
+    Pf = DrawOver (Pbkg, GO, GOA, MGO, 450, 50);
+    puts("Empate!");
+  }
+
+  PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
+  usleep(60000);
+
+}
+
+//faz a animação da colisão e coloca tela perguntando se quer outro round
+void Exploda (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double bounds[],Bullet* Bs,int nb,double t,double tb,int* dispclk,int pontos[])
 {
   /*
-  win = 3 naves colidiram, 1 player1 ganha, 2 player2 ganha
+  win = 3 naves colidiram, 1 player1 explodiu, 2 player2 explodiu
   */
   Sprite Explo = CriaExplo(w1);
   int i, j;
@@ -261,9 +294,7 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
       usleep(20000);
     }
-      GO = ReadPic(w1, "images/gameover/go3.xpm", MGO); //pic do planeta
-      Pf = DrawOver (Pf, GO, GOA, MGO, 550, 100);
-      puts ("Ambas as naves foram destruídas");
+      puts ("Ambas as naves foram destruídas"); //nenhuma pontuada
   }
   else if (win == 1) { //nave1 explodiu
     for (j=0; j<10; j++) {
@@ -282,10 +313,8 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
       usleep(20000);
     }
-    GO = ReadPic(w1, "images/gameover/go2.xpm", MGO); //pic do planeta
-    Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
-    puts ("Player 2 venceu!");
-    (pontos[1])++;
+    puts ("Player 2 foi destruído nessa rodada!");
+    (pontos[0])+=1000; //vitória dá 1000 pontos
 
   }
   else if (win == 2) { //nave0 explodiu
@@ -305,11 +334,12 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
       PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
       usleep(20000);
     }
-    GO = ReadPic(w1, "images/gameover/go1.xpm", MGO); //pic do planeta
-    Pf = DrawOver (Pf, GO, GOA, MGO, 450, 50);
-    puts ("Player 1 venceu!");
-    (pontos[0])++;
+    puts ("Player 1 foi destruído nessa rodada!");
+    (pontos[1])+=1000;
   }
+  GO = ReadPic(w1, "images/stop.xpm", MGO);
+  Pf = DrawOver (Pf, GO, GOA, MGO, 150, 100);
+
   PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
   usleep(60000);
 
@@ -320,7 +350,7 @@ void GameOver (int win, WINDOW* w1, PIC Pf, PIC Pbkg,PIC Pplnt, Nave* Ns,double 
 /*  Simulação do sistema dinâmico     */
 /**************************************/
 
-int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb,int* dispclk,double bounds[], WINDOW *w1){
+int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double tb,int* dispclk,double bounds[], WINDOW *w1, int pontos[]){
     /* recebe
     vetor com projeteis Bs
     vetor com naves Ns
@@ -425,7 +455,7 @@ int Update(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double t, double t
 
 
     dir=CheckKB(w1);    //gera ações captadas no teclado
-    ActKB(dir,dispclk,Ns,Bs,nb,bounds,w1);
+    ActKB(dir,dispclk,Ns,Bs,nb,bounds,w1,pontos);
 
     /* atualiza velocidade e posição das naves */
     Ns[0]->v = Add(Ns[0]->v,Multk(Ns[0]->a,dt));
@@ -473,7 +503,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
 
         bo=ImprimeDados(bo,t,tb,nb,Ns,Bs);                      /*impressão dos dados*/
 
-        col=Update(Bs, Ns, P, nb, dt, t, tb,dispclk,bounds, w1);                       /*atualiza valor das posições dos objetos*/
+        col=Update(Bs, Ns, P, nb, dt, t, tb,dispclk,bounds, w1, pontos);                       /*atualiza valor das posições dos objetos*/
 
         for(i=0;i<nb;i++){
             Bs[i]->c=CheckLimits(Bs[i]->c,bounds);              /*se a posição nova estiver fora da fronteira*/
@@ -493,16 +523,10 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
                                                 /*intervalo entre frames*/
         if(col){
             printf("\nHouve Colisão!\n");
-            GameOver(col,w1,Pf,Pbkg,Pplnt,Ns,bounds,Bs,nb,t,tb,dispclk,pontos);
+            Exploda(col,w1,Pf,Pbkg,Pplnt,Ns,bounds,Bs,nb,t,tb,dispclk,pontos);
             break;
         }
     }
-
-    //checa se alguma tecla foi apertada, no caso apenas teclas do jogo (a, w, s, d e setas)
-    g=0;
-    do {
-      g=CheckKB(w1);
-    } while(!g);
 
     printf("Simulação Finalizada!\n");
     #endif
@@ -514,7 +538,7 @@ void Simulate(Bullet* Bs, Nave* Ns, Planet P, int nb, double dt, double tf, doub
 /**************************************/
 
 int main(int argc, char*argv[]){
-    int i,j,nb,counter,pontos[2],stopcond=1,key;
+    int i,j,nb,counter,pontos[2],stopcond=1,key; //pontos é o vetor score, stopcond é a decisão de parar jogo
     double dt = atof(argv[1]) /*timestep dado por linha de comando*/, tb, bounds[4]/*limites do mapa a serem definidos*/;
     double** DadosN = malloc(sizeof(double*)*2), *DadosP=malloc(sizeof(double*)*3), **DadosB;
     char** Nomes = malloc(sizeof(char*)*2);
@@ -597,6 +621,7 @@ int main(int argc, char*argv[]){
 
     Intro (w1, Pbkg);
 
+    //jogo repete até no fim de uma rodada, escolherem n
     while(stopcond){
         Ns = CriaNaves(DadosN, Nomes,w1);
 
@@ -631,7 +656,14 @@ int main(int argc, char*argv[]){
                 break;
             }
         }
-        printf("\nprontuacao: %d X %d\n",pontos[0],pontos[1]);
+    }
+    GameOver(pontos, w1, Pbkg);
+    printf("\npontuacao: %d X %d\n",pontos[0],pontos[1]);
+
+    while(1){
+        i=CheckKBrestart(w1);
+        if(i)
+            break;
     }
 
     CloseGraph();
