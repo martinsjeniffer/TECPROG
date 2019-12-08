@@ -218,7 +218,7 @@ void Intro (WINDOW* w1, PIC Pbkg)
   Pf = NewPic(w1, WW, WH);
   for (i=0; i<3; i++) {
     //passa as instruções uma por uma e coloca as coloca na posição (300,200)
-    Pf = DrawOver (Pbkg, Intro->P[i], Intro->Aux[i], Intro->Msk[i], 100, 200);
+    Pf = DrawOver (Pbkg, Intro->P[i], Intro->Aux[i], Intro->Msk[i], 300, 200);
     PutPic(w1, Pf,  0, 0, WW, WH, 0, 0);
     //checa se alguma tecla foi apertada, no caso apenas teclas do jogo (a, w, s, d e setas)
     g=0;
